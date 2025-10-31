@@ -75,10 +75,20 @@ function updateRowControls() {
   document.querySelectorAll(".row-control").forEach((el) => el.remove());
   const rows = layoutContainer.querySelectorAll(".row-wrapper");
 
-  if (rows.length === 0) return;
+  // Show addRowBtn only if there are no rows
+  if (rows.length === 0) {
+    if (!layoutContainer.contains(addRowBtn)) {
+      layoutContainer.appendChild(addRowBtn);
+    }
+    return;
+  } else {
+    if (layoutContainer.contains(addRowBtn)) {
+      layoutContainer.removeChild(addRowBtn);
+    }
+  }
 
   rows.forEach((rowWrapper, index) => {
-    // Add an ABOVE button for every row (always visible)
+    // Add an ABOVE button for every row (only visible on hover via CSS)
     const addAbove = createRowControl("top");
     addAbove.addEventListener("click", () => {
       layoutContainer.insertBefore(createRow(), rowWrapper);
@@ -86,20 +96,23 @@ function updateRowControls() {
     });
     rowWrapper.appendChild(addAbove);
 
-    // Add BELOW button only for the last row (only visible on hover via CSS)
-    if (index === rows.length - 1) {
-      const addBelow = createRowControl("bottom");
-      addBelow.addEventListener("click", () => {
-        layoutContainer.insertBefore(createRow(), addRowBtn);
-        updateRowControls();
-      });
-      rowWrapper.appendChild(addBelow);
-    }
+    // Add a BELOW button for every row (only visible on hover via CSS)
+    const addBelow = createRowControl("bottom");
+    addBelow.addEventListener("click", () => {
+      // Insert after this row
+      if (rowWrapper.nextSibling) {
+        layoutContainer.insertBefore(createRow(), rowWrapper.nextSibling);
+      } else {
+        layoutContainer.appendChild(createRow());
+      }
+      updateRowControls();
+    });
+    rowWrapper.appendChild(addBelow);
   });
 }
 
 addRowBtn.addEventListener("click", () => {
   const newRow = createRow();
-  layoutContainer.insertBefore(newRow, addRowBtn);
+  layoutContainer.appendChild(newRow);
   updateRowControls();
 });
