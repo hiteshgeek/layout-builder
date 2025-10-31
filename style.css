@@ -1,3 +1,60 @@
+/* Drag and drop handle for rows */
+.row-drag-handle {
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  background: #f4f4f4;
+  z-index: 10;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.row-drag-handle svg circle {
+  transition: fill 0.2s;
+}
+
+.row-drag-handle:hover {
+  background: #e6f0ff;
+  border-color: #b3d1ff;
+}
+.row-drag-handle:hover svg circle {
+  fill: #007bff;
+}
+/* Drag and drop feedback for rows */
+.dragging-row {
+  opacity: 0.5;
+}
+.row-drop-target {
+  outline: 2px dashed #007bff;
+  outline-offset: 2px;
+}
+
+/* Drag and drop feedback for columns */
+.dragging-col {
+  opacity: 0.5;
+}
+.col-drop-target {
+  outline: 2px dashed #007bff;
+  outline-offset: 2px;
+}
+/* Change Layout Button */
+.change-layout-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.row-wrapper:hover .change-layout-btn {
+  opacity: 1;
+}
 body {
   margin: 0;
   font-family: Arial, sans-serif;
