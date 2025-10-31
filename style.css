@@ -242,11 +242,9 @@ body {
   justify-content: center;
   height: 24px;
   border-radius: 20px;
-  background: white;
   color: #d32f2f;
   font-weight: bold;
   font-size: 14px;
-  border: 2px solid #d32f2f;
   cursor: pointer;
   padding: 0 10px;
   box-shadow: none;
@@ -268,12 +266,10 @@ body {
 }
 
 /* Add Controls (Above / Below) */
-
-/* Add Controls (Above / Below) */
 .row-control {
+  transform: translateX(-50%);
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
   background: #007bff;
   color: white;
   border-radius: 20px;
@@ -283,7 +279,8 @@ body {
   gap: 6px;
   cursor: pointer;
   z-index: 5;
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Only show add-below on hover, add-above always visible */
@@ -299,6 +296,7 @@ body {
 
 .row-control:hover {
   opacity: 1 !important;
+  transform: translate(-50%, 0);
 }
 
 .row-control.top {
@@ -334,7 +332,6 @@ body {
   background: #007bff;
   color: white;
   opacity: 1 !important;
-  transform: translateY(0) !important;
   /* Only background and color change smoothly */
   box-shadow: none;
 }
@@ -343,6 +340,7 @@ body {
   opacity: 1;
 }
 
+/* Consolidated button styles */
 .btn,
 .delete-btn,
 .change-layout-btn,
@@ -357,25 +355,34 @@ body {
   cursor: pointer;
   box-shadow: none;
   gap: 6px;
+  padding: 0 10px;
+  border: 2px solid transparent;
+  background: white;
   transition: background 0.5s ease, color 0.5s ease,
     opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn {
-  background: white;
+.btn,
+.row-control .btn {
   color: #007bff;
-  border: 2px solid #007bff;
+  border-color: #007bff;
 }
-.btn:hover {
+.btn:hover,
+.row-control .btn:hover {
   background: #007bff;
   color: #fff;
 }
 
 .delete-btn {
-  background: white;
   color: #d32f2f;
-  border: 2px solid #d32f2f;
+  border-color: #d32f2f;
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 10;
+  line-height: 1;
+  opacity: 0;
 }
 .delete-btn:hover {
   background: #d32f2f;
@@ -383,13 +390,13 @@ body {
 }
 
 .change-layout-btn {
-  background: white;
   color: #6f42c1;
-  border: 2px solid #6f42c1;
+  border-color: #6f42c1;
   position: absolute;
   left: -11px;
   top: -11px;
   z-index: 9;
+  opacity: 0;
 }
 .change-layout-btn:hover,
 .change-layout-btn-hover {
@@ -397,20 +404,11 @@ body {
   color: #fff;
 }
 
-.row-control .btn {
-  border: 2px solid #007bff;
-}
-.row-control .btn:hover {
-  background: #007bff;
-  color: white;
-}
-
 .row-wrapper:hover .row-control.top,
 .row-wrapper:hover .row-control.bottom,
 .row-wrapper:hover .delete-btn,
 .row-wrapper:hover .change-layout-btn {
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
 }
 
@@ -418,7 +416,6 @@ body {
 .delete-btn:hover,
 .change-layout-btn:hover {
   opacity: 1 !important;
-  transform: translateY(0) !important;
 }
 
 @keyframes rowFadeIn {
