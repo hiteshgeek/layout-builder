@@ -208,6 +208,13 @@ body {
   background: #e0e0e0;
 }
 
+.selector-option.selected {
+  border: 2px solid #007bff;
+  background: #e6f0ff;
+  color: #007bff;
+  font-weight: bold;
+}
+
 .selector-preview {
   display: flex;
   justify-content: center;
@@ -341,6 +348,9 @@ body {
 }
 
 /* Consolidated button styles */
+
+/* Consolidated button styles for add, delete, and change layout */
+.layout-btn,
 .btn,
 .delete-btn,
 .change-layout-btn,
@@ -348,14 +358,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-  border-radius: 20px;
+  height: 20px;
+  border-radius: 14px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   box-shadow: none;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 5px;
+  padding: 0 8px;
   border: 2px solid transparent;
   background: white;
   transition: background 0.5s ease, color 0.5s ease,
@@ -378,8 +388,8 @@ body {
   color: #d32f2f;
   border-color: #d32f2f;
   position: absolute;
-  top: -12px;
-  right: -12px;
+  top: -9px;
+  right: -9px;
   z-index: 10;
   line-height: 1;
   opacity: 0;
@@ -393,8 +403,8 @@ body {
   color: #6f42c1;
   border-color: #6f42c1;
   position: absolute;
-  left: -11px;
-  top: -11px;
+  left: -9px;
+  top: -9px;
   z-index: 9;
   opacity: 0;
 }

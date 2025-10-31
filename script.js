@@ -168,11 +168,16 @@ function createRow() {
       row.appendChild(rowDragHandle);
     }
     row.appendChild(deleteBtn);
+    // Use wrapper._currentColCount to determine selected layout
+    let currentColCount = wrapper._currentColCount || 0;
     const selector = document.createElement("div");
     selector.classList.add("column-selector");
     columnOptions.forEach((count) => {
       const option = document.createElement("div");
       option.classList.add("selector-option");
+      if (count === currentColCount) {
+        option.classList.add("selected");
+      }
       const preview = document.createElement("div");
       preview.classList.add("selector-preview");
       for (let i = 0; i < count; i++) {
@@ -195,6 +200,8 @@ function createRow() {
 
   function setColumns(count) {
     row.innerHTML = "";
+    // Store the current column count on the wrapper for selector highlighting
+    wrapper._currentColCount = count;
     if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
       row.appendChild(rowDragHandle);
     }
