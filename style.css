@@ -111,8 +111,25 @@
 }
 /* Change Layout Button */
 .change-layout-btn {
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  border-radius: 20px;
+  background: white;
+  color: #6f42c1;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #6f42c1;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  padding: 0 10px;
+  box-shadow: none;
+  gap: 6px;
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  z-index: 9;
 }
 .row-wrapper:hover .change-layout-btn {
   opacity: 1;
@@ -220,31 +237,36 @@ body {
   position: absolute;
   top: -12px;
   right: -12px;
-  background: white;
-  color: #ff3b3b;
-  border: 2px solid #ff3b3b;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 24px;
+  border-radius: 20px;
+  background: white;
+  color: #d32f2f;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #d32f2f;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+  padding: 0 10px;
+  box-shadow: none;
+  gap: 6px;
+  line-height: 1;
+  opacity: 0;
 }
-
 .delete-btn:hover {
-  background: #ff3b3b;
-  color: white;
+  background: #d32f2f;
+  color: #fff;
 }
 
 .row-wrapper:hover .delete-btn {
   opacity: 1;
+}
+
+.delete-icon {
+  margin-right: 6px;
 }
 
 /* Add Controls (Above / Below) */
@@ -290,11 +312,10 @@ body {
 }
 
 .row-control .btn {
+  /* Remove circular style and fixed width/height for icon+text layout */
   background: white;
   color: #007bff;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,6 +323,11 @@ body {
   cursor: pointer;
   border: 2px solid #007bff;
   font-size: 14px;
+  height: 24px;
+  padding: 0 10px;
+  gap: 6px;
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s;
 }
 
 .row-control .btn:hover {
@@ -311,4 +337,112 @@ body {
 
 .column:hover .col-drag-handle {
   opacity: 1;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  border-radius: 20px;
+  background: white;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #007bff;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  padding: 0 10px;
+  box-shadow: none;
+  gap: 6px;
+}
+.btn:hover {
+  background: #007bff;
+  color: #fff;
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  border-radius: 20px;
+  background: white;
+  color: #d32f2f;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #d32f2f;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  padding: 0 10px;
+  box-shadow: none;
+  gap: 6px;
+}
+.delete-btn:hover {
+  background: #d32f2f;
+  color: #fff;
+}
+
+.change-layout-icon {
+  margin-right: 6px;
+}
+
+.change-layout-btn-hover {
+  background: #6f42c1;
+  color: #fff;
+}
+
+/* Button appear/hide animation */
+.row-control,
+.delete-btn,
+.change-layout-btn {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.row-wrapper:hover .row-control.top,
+.row-wrapper:hover .row-control.bottom,
+.row-wrapper:hover .delete-btn,
+.row-wrapper:hover .change-layout-btn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.row-control:hover,
+.delete-btn:hover,
+.change-layout-btn:hover {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rowFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.row-animate-in {
+  animation: rowFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.row-animate-out {
+  animation: rowFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }

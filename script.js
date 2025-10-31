@@ -5,8 +5,27 @@ const columnOptions = [1, 2, 3, 4, 6, 8];
 function createRowControl(position = "top") {
   const control = document.createElement("div");
   control.classList.add("row-control", position);
-  control.innerHTML = `<div class="btn">+</div>`;
+  const btn = document.createElement("div");
+  btn.className = "btn";
+  // Font Awesome icon for add
+  const icon = document.createElement("i");
+  icon.className = "fa fa-plus";
+  icon.setAttribute("aria-hidden", "true");
+  btn.appendChild(icon);
+  const text = document.createElement("span");
+  text.textContent = position === "top" ? "Add Row Above" : "Add Row Below";
+  btn.appendChild(text);
+  control.appendChild(btn);
   return control;
+}
+
+// Helper to animate row removal
+function animateRowRemove(rowElem, callback) {
+  rowElem.classList.add("row-animate-out");
+  rowElem.addEventListener("animationend", function handler() {
+    rowElem.removeEventListener("animationend", handler);
+    if (typeof callback === "function") callback();
+  });
 }
 
 function createRow() {
@@ -84,13 +103,21 @@ function createRow() {
     }
   });
 
-  // Delete button
+  // Delete button (Font Awesome icon and text)
   const deleteBtn = document.createElement("button");
   deleteBtn.classList.add("delete-btn");
-  deleteBtn.textContent = "×";
+  const delIcon = document.createElement("i");
+  delIcon.className = "fa fa-trash";
+  delIcon.setAttribute("aria-hidden", "true");
+  deleteBtn.appendChild(delIcon);
+  const delText = document.createElement("span");
+  delText.textContent = "Delete Row";
+  deleteBtn.appendChild(delText);
   deleteBtn.addEventListener("click", () => {
-    wrapper.remove();
-    updateRowControls();
+    animateRowRemove(wrapper, () => {
+      wrapper.remove();
+      updateRowControls();
+    });
   });
 
   const row = document.createElement("div");
@@ -208,41 +235,21 @@ function createRow() {
       columns.push(col);
     }
     columns.forEach((col) => row.appendChild(col));
-    // Add change layout button
+    // Add change layout button (Font Awesome icon and text)
     const changeBtn = document.createElement("button");
     changeBtn.className = "change-layout-btn";
-    changeBtn.style.position = "absolute";
-    changeBtn.style.left = "-11px";
-    changeBtn.style.top = "-11px";
-    changeBtn.style.height = "24px";
-    changeBtn.style.borderRadius = "20px";
-    changeBtn.style.background = "white";
-    changeBtn.style.color = "#007bff";
-    changeBtn.style.border = "2px solid #007bff";
-    changeBtn.style.display = "flex";
-    changeBtn.style.alignItems = "center";
-    changeBtn.style.justifyContent = "center";
-    changeBtn.style.fontWeight = "bold";
-    changeBtn.style.fontSize = "14px";
-    changeBtn.style.zIndex = "9";
-    changeBtn.style.cursor = "pointer";
-    changeBtn.style.padding = "0 10px";
-    // Icon
-    const icon = document.createElement("span");
-    icon.textContent = "⟳";
-    icon.style.marginRight = "6px";
-    // Text
-    const text = document.createElement("span");
-    text.textContent = "Change layout";
-    changeBtn.appendChild(icon);
-    changeBtn.appendChild(text);
+    const changeIcon = document.createElement("i");
+    changeIcon.className = "fa fa-random";
+    changeIcon.setAttribute("aria-hidden", "true");
+    changeBtn.appendChild(changeIcon);
+    const changeText = document.createElement("span");
+    changeText.textContent = "Change layout";
+    changeBtn.appendChild(changeText);
     changeBtn.addEventListener("mouseenter", () => {
-      changeBtn.style.background = "#007bff";
-      changeBtn.style.color = "white";
+      changeBtn.classList.add("change-layout-btn-hover");
     });
     changeBtn.addEventListener("mouseleave", () => {
-      changeBtn.style.background = "white";
-      changeBtn.style.color = "#007bff";
+      changeBtn.classList.remove("change-layout-btn-hover");
     });
     changeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -321,21 +328,27 @@ function updateRowControls() {
     // Add an ABOVE button for every row (only visible on hover via CSS)
     const addAbove = createRowControl("top");
     addAbove.addEventListener("click", () => {
-      layoutContainer.insertBefore(createRow(), rowWrapper);
+      const newRow = createRow();
+      newRow.classList.add("row-animate-in");
+      layoutContainer.insertBefore(newRow, rowWrapper);
       updateRowControls();
+      setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
     });
     rowWrapper.appendChild(addAbove);
 
     // Add a BELOW button for every row (only visible on hover via CSS)
     const addBelow = createRowControl("bottom");
     addBelow.addEventListener("click", () => {
+      const newRow = createRow();
+      newRow.classList.add("row-animate-in");
       // Insert after this row
       if (rowWrapper.nextSibling) {
-        layoutContainer.insertBefore(createRow(), rowWrapper.nextSibling);
+        layoutContainer.insertBefore(newRow, rowWrapper.nextSibling);
       } else {
-        layoutContainer.appendChild(createRow());
+        layoutContainer.appendChild(newRow);
       }
       updateRowControls();
+      setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
     });
     rowWrapper.appendChild(addBelow);
   });
@@ -343,6 +356,8 @@ function updateRowControls() {
 
 addRowBtn.addEventListener("click", () => {
   const newRow = createRow();
+  newRow.classList.add("row-animate-in");
   layoutContainer.appendChild(newRow);
   updateRowControls();
+  setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
 });
