@@ -1,3 +1,21 @@
+:root {
+  --primary-color: #2196f3;
+  --primary-color-light: #e3f2fd;
+  --danger-color: #e53935;
+  --background: #fff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --spacing: 10px;
+  --column-gap: 10px;
+  --plus-btn-size: 32px;
+  --plus-btn-font-size: 1.6em;
+  --handle-size: 28px;
+  --handle-color: #888;
+  --delete-btn-bg: #fff;
+  --delete-btn-color: var(--danger-color);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 #layoutName {
   border: 1px solid #999;
   background-color: #fff;
@@ -11,14 +29,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 32px;
-  height: 32px;
+  width: var(--plus-btn-size);
+  height: var(--plus-btn-size);
   border: none;
-  background: #fff;
+  background: var(--background);
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  color: #2196f3;
-  font-size: 1.6em;
+  box-shadow: var(--box-shadow);
+  color: var(--primary-color);
+  font-size: var(--plus-btn-font-size);
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -26,6 +44,7 @@
   pointer-events: none;
   z-index: 1;
 }
+
 .col-plus-btn span {
   pointer-events: none;
   user-select: none;
@@ -79,7 +98,7 @@
   top: 0;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 28px;
+  width: var(--handle-size);
   height: 12px;
   display: flex;
   align-items: center;
@@ -113,7 +132,7 @@
   top: 50%;
   transform: translateY(-50%);
   width: 12px;
-  height: 28px;
+  height: var(--handle-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -200,7 +219,7 @@ body {
   background: white;
   display: flex;
   flex-wrap: nowrap;
-  gap: 25px;
+  gap: var(--column-gap);
   justify-content: space-between;
   position: relative;
 }
