@@ -1,3 +1,19 @@
+.row-wrapper.row-not-allowed {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+.column.col-not-allowed {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+.row-drag-handle.drag-not-allowed,
+.col-drag-handle.drag-not-allowed {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
 .col-1 {
   flex: 0 0 calc(100% - 10px);
 }
@@ -19,8 +35,8 @@
 .row-drag-handle svg {
   display: block;
   margin: auto;
-  width: 16px;
-  height: 22px;
+  width: 10px;
+  height: 18px;
 }
 .column {
   position: relative;
@@ -28,20 +44,24 @@
 /* Drag and drop handle for columns */
 .col-drag-handle {
   position: absolute;
-  top: -10px;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 28px;
-  height: 22px;
+  height: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: grab;
   user-select: none;
-  background: #f8f9fa;
+}
+
+.row-drag-handle,
+.col-drag-handle {
+  background: #f3eb69;
   z-index: 10;
-  padding: 2px 0;
-  border-radius: 5px;
+  padding: 0;
+  border-radius: 3px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   opacity: 0;
@@ -49,28 +69,27 @@
 }
 
 .col-drag-handle svg {
-  width: 22px;
-  height: 16px;
+  width: 16px;
+  height: 10px;
   display: block;
   margin: auto;
 }
 /* Drag and drop handle for rows */
 .row-drag-handle {
   position: absolute;
-  left: -10px;
+  left: -5px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
+  width: 12px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: grab;
   user-select: none;
-  background: #f8f9fa;
   z-index: 10;
-  padding: 0 2px;
-  border-radius: 5px;
+  padding: 0;
+  border-radius: 3px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   opacity: 0;
@@ -81,17 +100,18 @@
   opacity: 1;
 }
 
-.row-drag-handle svg circle {
+.row-drag-handle svg circle,
+.col-drag-handle svg circle {
   transition: fill 0.2s;
+  fill: #000;
 }
 
+.row-drag-handle:hover,
 .col-drag-handle:hover {
   background: #e6f0ff;
   border-color: #b3d1ff;
 }
-.col-drag-handle:hover svg circle {
-  fill: #007bff;
-}
+
 /* Drag and drop feedback for rows */
 .dragging-row {
   opacity: 0.5;
@@ -109,27 +129,7 @@
   outline: 2px dashed #007bff;
   outline-offset: 2px;
 }
-/* Change Layout Button */
-.change-layout-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  border-radius: 20px;
-  background: white;
-  color: #6f42c1;
-  font-weight: bold;
-  font-size: 14px;
-  border: 2px solid #6f42c1;
-  cursor: pointer;
-  padding: 0 10px;
-  box-shadow: none;
-  gap: 6px;
-  position: absolute;
-  left: -11px;
-  top: -11px;
-  z-index: 9;
-}
+
 .row-wrapper:hover .change-layout-btn {
   opacity: 1;
 }
@@ -236,38 +236,6 @@ body {
   color: #333;
 }
 
-/* Delete Button */
-
-/* Delete Button at right top corner */
-.delete-btn {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  border-radius: 20px;
-  color: #d32f2f;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 10px;
-  box-shadow: none;
-  gap: 6px;
-  line-height: 1;
-  opacity: 0;
-}
-.delete-btn:hover {
-  background: #d32f2f;
-  color: #fff;
-}
-
-.row-wrapper:hover .delete-btn {
-  opacity: 1;
-}
-
 .delete-icon {
   margin-right: 6px;
 }
@@ -314,40 +282,9 @@ body {
   bottom: -12px;
 }
 
-.row-control .btn {
-  /* Remove circular style and fixed width/height for icon+text layout */
-  background: white;
-  color: #007bff;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: pointer;
-  border: 2px solid #007bff;
-  font-size: 14px;
-  height: 24px;
-  padding: 0 10px;
-  gap: 6px;
-  box-shadow: none;
-  transition: background 0.5s ease, color 0.5s ease,
-    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.row-control .btn:hover {
-  background: #007bff;
-  color: white;
-  opacity: 1 !important;
-  /* Only background and color change smoothly */
-  box-shadow: none;
-}
-
 .column:hover .col-drag-handle {
   opacity: 1;
 }
-
-/* Consolidated button styles */
 
 /* Consolidated button styles for add, delete, and change layout */
 .layout-btn,
@@ -366,7 +303,7 @@ body {
   box-shadow: none;
   gap: 5px;
   padding: 0 8px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   background: white;
   transition: background 0.5s ease, color 0.5s ease,
     opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
@@ -454,4 +391,8 @@ body {
 }
 .row-animate-out {
   animation: rowFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.delete-btn-hidden {
+  display: none !important;
 }

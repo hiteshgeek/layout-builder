@@ -1,5 +1,4 @@
 const layoutContainer = document.getElementById("layoutContainer");
-const addRowBtn = document.getElementById("addRowBtn");
 const columnOptions = [1, 2, 3, 4];
 
 function createRowControl(position = "top") {
@@ -41,6 +40,7 @@ function initRowControls(rowWrapper) {
     setTimeout(() => {
       newRow.classList.remove("row-animate-in");
       initRowControls(newRow);
+      updateRowControls(); // Ensure delete buttons are updated
     }, 400);
   });
   rowWrapper.appendChild(addAbove);
@@ -57,6 +57,7 @@ function initRowControls(rowWrapper) {
     setTimeout(() => {
       newRow.classList.remove("row-animate-in");
       initRowControls(newRow);
+      updateRowControls(); // Ensure delete buttons are updated
     }, 400);
   });
   rowWrapper.appendChild(addBelow);
@@ -65,6 +66,52 @@ function initRowControls(rowWrapper) {
 function createRow() {
   const wrapper = document.createElement("div");
   wrapper.classList.add("row-wrapper");
+  // --- Not-allowed feedback for column drag over other rows ---
+  wrapper.addEventListener("dragenter", (e) => {
+    // Determine row number (1-based index among all .row-wrapper elements)
+    const allRowWrappers = Array.from(
+      document.querySelectorAll(".row-wrapper")
+    );
+    const rowNumber = allRowWrappers.indexOf(wrapper) + 1;
+    // console.log("[DEBUG] dragenter .row-wrapper", {
+    //   rowNumber,
+    //   rowDefined: typeof row !== "undefined",
+    //   rowObj: row,
+    //   row_draggedCol: row && row._draggedCol,
+    //   window_draggedRow: window._draggedRow,
+    // });
+    if (
+      typeof row !== "undefined" &&
+      row._draggedCol &&
+      window._draggedRow == null
+    ) {
+      // Only if a column is being dragged and not a row
+      const draggedCol = row._draggedCol;
+      const draggedColRowWrapper = draggedCol
+        ? draggedCol.closest(".row-wrapper")
+        : null;
+      const eventRowWrapper = e.target.closest(".row-wrapper");
+      if (wrapper !== draggedColRowWrapper) {
+        // console.log(
+        //   "[DEBUG] Not-allowed feedback: dragging column to another row",
+        //   { wrapper, draggedColRowWrapper, eventRowWrapper }
+        // );
+        wrapper.classList.add("row-not-allowed");
+      } else {
+        // console.log("[DEBUG] Dragging column inside its own row", {
+        //   wrapper,
+        //   draggedColRowWrapper,
+        //   eventRowWrapper,
+        // });
+      }
+    }
+  });
+  wrapper.addEventListener("dragleave", (e) => {
+    wrapper.classList.remove("row-not-allowed");
+  });
+  wrapper.addEventListener("drop", (e) => {
+    wrapper.classList.remove("row-not-allowed");
+  });
 
   // Drag and drop for rows (handle visibility managed by updateRowControls)
   let rowDragHandle = null;
@@ -137,37 +184,18 @@ function createRow() {
     }
   });
 
-  // Delete button (Font Awesome icon and text)
-  const deleteBtn = document.createElement("button");
-  deleteBtn.classList.add("delete-btn");
-  const delIcon = document.createElement("i");
-  delIcon.className = "fa fa-trash";
-  delIcon.setAttribute("aria-hidden", "true");
-  deleteBtn.appendChild(delIcon);
-  const delText = document.createElement("span");
-  delText.textContent = "Delete Row";
-  deleteBtn.appendChild(delText);
-  deleteBtn.addEventListener("click", () => {
-    animateRowRemove(wrapper, () => {
-      wrapper.remove();
-      updateRowControls();
-    });
-  });
-
   const row = document.createElement("div");
   row.classList.add("row");
 
+  // Always append deleteBtn to the row, before or after column selection
+  // In showColumnSelector and setColumns, always append deleteBtn
   function showColumnSelector() {
     row.innerHTML = "";
-    // Remove addRowBtn if present (when first row is added)
-    if (layoutContainer.contains(addRowBtn)) {
-      layoutContainer.removeChild(addRowBtn);
-    }
-    // Only show row drag handle if more than one row exists
     if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
       row.appendChild(rowDragHandle);
     }
-    row.appendChild(deleteBtn);
+    row.appendChild(deleteBtn); // Always re-append after clearing
+    updateDeleteBtnVisibility();
     // Use wrapper._currentColCount to determine selected layout
     let currentColCount = wrapper._currentColCount || 0;
     const selector = document.createElement("div");
@@ -205,7 +233,8 @@ function createRow() {
     if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
       row.appendChild(rowDragHandle);
     }
-    row.appendChild(deleteBtn);
+    row.appendChild(deleteBtn); // Always re-append after clearing
+    updateDeleteBtnVisibility();
     const columns = [];
     for (let i = 0; i < count; i++) {
       const col = document.createElement("div");
@@ -231,6 +260,17 @@ function createRow() {
           e.dataTransfer.effectAllowed = "move";
           e.dataTransfer.setData("text/plain", "col");
           row._draggedCol = col;
+          // Mark all col-drag-handles and columns in other rows as not-allowed
+          document.querySelectorAll(".row-wrapper").forEach((rw) => {
+            if (rw !== wrapper) {
+              rw.querySelectorAll(".col-drag-handle").forEach((h) =>
+                h.classList.add("drag-not-allowed")
+              );
+              rw.querySelectorAll(".column").forEach((c) =>
+                c.classList.add("col-not-allowed")
+              );
+            }
+          });
         });
         colDragHandle.addEventListener("dragend", () => {
           col.classList.remove("dragging-col");
@@ -238,6 +278,13 @@ function createRow() {
           row
             .querySelectorAll(".column")
             .forEach((c) => c.classList.remove("col-drop-target"));
+          // Remove not-allowed feedback from all col-drag-handles and columns
+          document
+            .querySelectorAll(".col-drag-handle.drag-not-allowed")
+            .forEach((h) => h.classList.remove("drag-not-allowed"));
+          document
+            .querySelectorAll(".column.col-not-allowed")
+            .forEach((c) => c.classList.remove("col-not-allowed"));
         });
         col.addEventListener("dragover", (e) => {
           e.preventDefault();
@@ -304,6 +351,35 @@ function createRow() {
     updateRowControls();
   }
 
+  // Create the delete button and handler only once per row
+  const deleteBtn = document.createElement("button");
+  deleteBtn.classList.add("delete-btn");
+  const delIcon = document.createElement("i");
+  delIcon.className = "fa fa-trash";
+  delIcon.setAttribute("aria-hidden", "true");
+  deleteBtn.appendChild(delIcon);
+  const delText = document.createElement("span");
+  delText.textContent = "Delete Row";
+  deleteBtn.appendChild(delText);
+  deleteBtn.onclick = function () {
+    if (document.querySelectorAll(".row-wrapper").length > 1) {
+      animateRowRemove(wrapper, () => {
+        wrapper.remove();
+        updateRowControls();
+      });
+    }
+  };
+
+  // Helper to update delete button visibility
+  function updateDeleteBtnVisibility() {
+    if (document.querySelectorAll(".row-wrapper").length === 1) {
+      deleteBtn.classList.add("delete-btn-hidden");
+    } else {
+      deleteBtn.classList.remove("delete-btn-hidden");
+    }
+  }
+  wrapper.updateDeleteBtnVisibility = updateDeleteBtnVisibility;
+
   showColumnSelector();
   wrapper.appendChild(row);
   return wrapper;
@@ -312,18 +388,6 @@ function createRow() {
 function updateRowControls() {
   document.querySelectorAll(".row-control").forEach((el) => el.remove());
   const rows = layoutContainer.querySelectorAll(".row-wrapper");
-
-  // Show addRowBtn only if there are no rows
-  if (rows.length === 0) {
-    if (!layoutContainer.contains(addRowBtn)) {
-      layoutContainer.appendChild(addRowBtn);
-    }
-    return;
-  } else {
-    if (layoutContainer.contains(addRowBtn)) {
-      layoutContainer.removeChild(addRowBtn);
-    }
-  }
 
   // Remove all existing row drag handles
   rows.forEach((rowWrapper) => {
@@ -372,14 +436,40 @@ function updateRowControls() {
   rows.forEach((rowWrapper) => {
     initRowControls(rowWrapper);
   });
+
+  // After updating controls, update delete button visibility for all rows
+  document.querySelectorAll(".row-wrapper").forEach((rowWrapper) => {
+    if (rowWrapper.updateDeleteBtnVisibility)
+      rowWrapper.updateDeleteBtnVisibility();
+  });
 }
 
-addRowBtn.addEventListener("click", () => {
-  const newRow = createRow();
-  newRow.classList.add("row-animate-in");
-  layoutContainer.appendChild(newRow);
-  setTimeout(() => {
-    newRow.classList.remove("row-animate-in");
-    initRowControls(newRow);
-  }, 400);
+// Delete button (Font Awesome icon and text)
+const deleteBtn = document.createElement("button");
+deleteBtn.classList.add("delete-btn");
+const delIcon = document.createElement("i");
+delIcon.className = "fa fa-trash";
+delIcon.setAttribute("aria-hidden", "true");
+deleteBtn.appendChild(delIcon);
+const delText = document.createElement("span");
+delText.textContent = "Delete Row";
+deleteBtn.appendChild(delText);
+deleteBtn.addEventListener("click", () => {
+  // Only allow delete if more than one row exists
+  if (document.querySelectorAll(".row-wrapper").length > 1) {
+    animateRowRemove(wrapper, () => {
+      wrapper.remove();
+      updateRowControls();
+    });
+  }
 });
+
+// On load, always create a row (no addRowBtn)
+const initialRow = createRow();
+layoutContainer.appendChild(initialRow);
+setTimeout(() => {
+  initRowControls(initialRow);
+  // Hide delete button if only one row
+  if (initialRow.updateDeleteBtnVisibility)
+    initialRow.updateDeleteBtnVisibility();
+}, 100);
