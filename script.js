@@ -78,7 +78,7 @@ function updateRowControls() {
   if (rows.length === 0) return;
 
   rows.forEach((rowWrapper, index) => {
-    // Add an ABOVE button for every row
+    // Add an ABOVE button for every row (always visible)
     const addAbove = createRowControl("top");
     addAbove.addEventListener("click", () => {
       layoutContainer.insertBefore(createRow(), rowWrapper);
@@ -86,7 +86,7 @@ function updateRowControls() {
     });
     rowWrapper.appendChild(addAbove);
 
-    // Add BELOW button only for the last row
+    // Add BELOW button only for the last row (only visible on hover via CSS)
     if (index === rows.length - 1) {
       const addBelow = createRowControl("bottom");
       addBelow.addEventListener("click", () => {
