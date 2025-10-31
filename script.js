@@ -28,6 +28,40 @@ function animateRowRemove(rowElem, callback) {
   });
 }
 
+// Helper to initialize controls for a single row
+function initRowControls(rowWrapper) {
+  // Remove any existing controls for this row
+  rowWrapper.querySelectorAll(".row-control").forEach((el) => el.remove());
+  // Add an ABOVE button
+  const addAbove = createRowControl("top");
+  addAbove.addEventListener("click", () => {
+    const newRow = createRow();
+    newRow.classList.add("row-animate-in");
+    layoutContainer.insertBefore(newRow, rowWrapper);
+    setTimeout(() => {
+      newRow.classList.remove("row-animate-in");
+      initRowControls(newRow);
+    }, 400);
+  });
+  rowWrapper.appendChild(addAbove);
+  // Add a BELOW button
+  const addBelow = createRowControl("bottom");
+  addBelow.addEventListener("click", () => {
+    const newRow = createRow();
+    newRow.classList.add("row-animate-in");
+    if (rowWrapper.nextSibling) {
+      layoutContainer.insertBefore(newRow, rowWrapper.nextSibling);
+    } else {
+      layoutContainer.appendChild(newRow);
+    }
+    setTimeout(() => {
+      newRow.classList.remove("row-animate-in");
+      initRowControls(newRow);
+    }, 400);
+  });
+  rowWrapper.appendChild(addBelow);
+}
+
 function createRow() {
   const wrapper = document.createElement("div");
   wrapper.classList.add("row-wrapper");
@@ -125,6 +159,10 @@ function createRow() {
 
   function showColumnSelector() {
     row.innerHTML = "";
+    // Remove addRowBtn if present (when first row is added)
+    if (layoutContainer.contains(addRowBtn)) {
+      layoutContainer.removeChild(addRowBtn);
+    }
     // Only show row drag handle if more than one row exists
     if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
       row.appendChild(rowDragHandle);
@@ -324,33 +362,8 @@ function updateRowControls() {
     });
   }
 
-  rows.forEach((rowWrapper, index) => {
-    // Add an ABOVE button for every row (only visible on hover via CSS)
-    const addAbove = createRowControl("top");
-    addAbove.addEventListener("click", () => {
-      const newRow = createRow();
-      newRow.classList.add("row-animate-in");
-      layoutContainer.insertBefore(newRow, rowWrapper);
-      updateRowControls();
-      setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
-    });
-    rowWrapper.appendChild(addAbove);
-
-    // Add a BELOW button for every row (only visible on hover via CSS)
-    const addBelow = createRowControl("bottom");
-    addBelow.addEventListener("click", () => {
-      const newRow = createRow();
-      newRow.classList.add("row-animate-in");
-      // Insert after this row
-      if (rowWrapper.nextSibling) {
-        layoutContainer.insertBefore(newRow, rowWrapper.nextSibling);
-      } else {
-        layoutContainer.appendChild(newRow);
-      }
-      updateRowControls();
-      setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
-    });
-    rowWrapper.appendChild(addBelow);
+  rows.forEach((rowWrapper) => {
+    initRowControls(rowWrapper);
   });
 }
 
@@ -358,6 +371,8 @@ addRowBtn.addEventListener("click", () => {
   const newRow = createRow();
   newRow.classList.add("row-animate-in");
   layoutContainer.appendChild(newRow);
-  updateRowControls();
-  setTimeout(() => newRow.classList.remove("row-animate-in"), 400);
+  setTimeout(() => {
+    newRow.classList.remove("row-animate-in");
+    initRowControls(newRow);
+  }, 400);
 });
