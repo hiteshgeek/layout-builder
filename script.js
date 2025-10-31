@@ -1,4 +1,199 @@
 const layoutContainer = document.getElementById("layoutContainer");
+// --- Layout Save/Load Dropdown and Logic ---
+let currentLayoutName = null;
+let hasSavedOnce = false;
+
+// Create dropdown for layout selection
+const layoutSelect = document.createElement("select");
+layoutSelect.className = "layout-load-select";
+layoutSelect.innerHTML = '<option value="">Select layout...</option>';
+layoutSelect.style.margin = "16px 0 8px 0";
+layoutSelect.addEventListener("change", async function () {
+  const name = this.value;
+  if (!name || name === "__new__") return;
+  await loadLayoutFromServer(name);
+});
+document.body.insertBefore(layoutSelect, layoutContainer);
+
+// Show current layout name
+const layoutNameLabel = document.createElement("span");
+layoutNameLabel.className = "layout-name-label";
+layoutNameLabel.style.marginLeft = "12px";
+document.body.insertBefore(layoutNameLabel, layoutSelect.nextSibling);
+
+function updateLayoutNameLabel() {
+  layoutNameLabel.textContent = currentLayoutName
+    ? `Current layout: ${currentLayoutName}`
+    : "";
+}
+
+async function listLayouts() {
+  const res = await fetch("list_layouts.php");
+  const names = await res.json();
+  layoutSelect.innerHTML = '<option value="">Select layout...</option>';
+  names.forEach((name) => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    layoutSelect.appendChild(opt);
+  });
+  if (currentLayoutName) {
+    layoutSelect.value = currentLayoutName;
+  }
+  addNewLayoutOption();
+}
+
+// Hide save button after first save or load
+function hideSaveBtn() {
+  saveBtn.style.display = "none";
+}
+
+// Add 'New Layout' option to dropdown
+function addNewLayoutOption() {
+  let newOpt = layoutSelect.querySelector('option[value="__new__"]');
+  if (!newOpt) {
+    newOpt = document.createElement("option");
+    newOpt.value = "__new__";
+    newOpt.textContent = "+ New Layout";
+    layoutSelect.insertBefore(newOpt, layoutSelect.firstChild);
+  }
+}
+
+layoutSelect.addEventListener("change", function () {
+  if (this.value === "__new__") {
+    // Clear everything and show save button again
+    document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
+    const newRow = createRow();
+    layoutContainer.appendChild(newRow);
+    setTimeout(() => {
+      initRowControls(newRow);
+      if (newRow.updateDeleteBtnVisibility) newRow.updateDeleteBtnVisibility();
+    }, 100);
+    currentLayoutName = null;
+    hasSavedOnce = false;
+    updateLayoutNameLabel();
+    saveBtn.style.display = "inline-block";
+    this.value = "";
+  }
+});
+
+function getLayoutJson() {
+  return Array.from(document.querySelectorAll(".row-wrapper")).map(
+    (wrapper) => {
+      const row = wrapper.querySelector(".row");
+      const cols = row ? row.querySelectorAll(".column").length : 0;
+      return { columns: cols };
+    }
+  );
+}
+
+async function saveLayoutToServer(name) {
+  const data = JSON.stringify(getLayoutJson());
+  const form = new FormData();
+  form.append("name", name);
+  form.append("data", data);
+  const res = await fetch("save_layout.php", { method: "POST", body: form });
+  const result = await res.json();
+  if (result.success) {
+    hasSavedOnce = true;
+    currentLayoutName = name;
+    updateLayoutNameLabel();
+    await listLayouts();
+    addNewLayoutOption();
+    hideSaveBtn();
+  } else {
+    alert("Save failed: " + (result.error || "Unknown error"));
+  }
+}
+
+async function loadLayoutFromServer(name) {
+  const res = await fetch("load_layout.php?name=" + encodeURIComponent(name));
+  try {
+    const arr = await res.json();
+    if (Array.isArray(arr)) {
+      restoreLayoutFromJson(arr);
+      currentLayoutName = name;
+      hasSavedOnce = true;
+      updateLayoutNameLabel();
+      hideSaveBtn();
+    } else {
+      alert("Invalid layout data");
+    }
+  } catch (e) {
+    alert("Load failed");
+  }
+}
+
+// Save button (only for first save)
+const saveBtn = document.createElement("button");
+saveBtn.textContent = "Save Layout";
+saveBtn.style.margin = "0 8px 8px 0";
+saveBtn.onclick = async function () {
+  const name = prompt("Enter layout name:");
+  if (!name) return;
+  await saveLayoutToServer(name);
+};
+document.body.insertBefore(saveBtn, layoutSelect);
+
+// Auto-save after first save
+function autoSaveLayout() {
+  if (hasSavedOnce && currentLayoutName) {
+    saveLayoutToServer(currentLayoutName);
+  }
+}
+
+// --- Robust autosave observer ---
+let layoutMutationObserver = null;
+function enableLayoutAutosaveObserver() {
+  if (layoutMutationObserver) layoutMutationObserver.disconnect();
+  layoutMutationObserver = new MutationObserver(() => {
+    if (hasSavedOnce && currentLayoutName) {
+      saveLayoutToServer(currentLayoutName);
+    }
+  });
+  layoutMutationObserver.observe(layoutContainer, {
+    childList: true,
+    subtree: true,
+    attributes: false,
+  });
+}
+
+// Restore layout from JSON array
+function restoreLayoutFromJson(layoutArr) {
+  document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
+  layoutArr.forEach((rowObj) => {
+    const wrapper = createRow();
+    layoutContainer.appendChild(wrapper);
+    setTimeout(() => {
+      initRowControls(wrapper);
+      // Always set columns using the same logic as column selector
+      if (rowObj.columns > 0) {
+        // Try to find the setColumns function from the row context
+        let row = wrapper.querySelector(".row");
+        if (row && typeof row.setColumns === "function") {
+          row.setColumns(rowObj.columns);
+        } else if (typeof wrapper.setColumns === "function") {
+          wrapper.setColumns(rowObj.columns);
+        } else {
+          // fallback: simulate click on the correct selector option
+          const selectorOptions = wrapper.querySelectorAll(".selector-option");
+          if (selectorOptions && selectorOptions.length) {
+            const idx = [1, 2, 3, 4].indexOf(rowObj.columns);
+            if (idx >= 0 && selectorOptions[idx]) selectorOptions[idx].click();
+          }
+        }
+      }
+    }, 0);
+  });
+  setTimeout(() => {
+    updateRowControls();
+    patchRowAutosave(); // Enable autosave for all rows
+    enableLayoutAutosaveObserver(); // Robust autosave for all changes
+  }, 100);
+}
+
+// On page load, list layouts
+listLayouts().then(addNewLayoutOption);
 const columnOptions = [1, 2, 3, 4];
 
 function createRowControl(position = "top") {
@@ -239,8 +434,14 @@ function createRow() {
     for (let i = 0; i < count; i++) {
       const col = document.createElement("div");
       col.classList.add("column", `col-${count}`);
-      // Show column number for testing drag
-      col.textContent = (i + 1).toString();
+      // Add stylistic plus button instead of numbering
+      const plusBtn = document.createElement("button");
+      plusBtn.className = "col-plus-btn";
+      plusBtn.innerHTML = "<span>+</span>";
+      plusBtn.type = "button";
+      plusBtn.tabIndex = -1;
+      plusBtn.style.pointerEvents = "none"; // purely decorative
+      col.appendChild(plusBtn);
       // Add column drag handle only if more than one column
       if (count > 1) {
         const colDragHandle = document.createElement("div");
@@ -469,7 +670,83 @@ const initialRow = createRow();
 layoutContainer.appendChild(initialRow);
 setTimeout(() => {
   initRowControls(initialRow);
-  // Hide delete button if only one row
   if (initialRow.updateDeleteBtnVisibility)
     initialRow.updateDeleteBtnVisibility();
 }, 100);
+
+// Patch setColumns and showColumnSelector to call autoSave
+const origCreateRow = createRow;
+createRow = function (...args) {
+  const wrapper = origCreateRow.apply(this, args);
+  // Patch setColumns
+  if (wrapper.setColumns) {
+    const origSetColumns = wrapper.setColumns;
+    wrapper.setColumns = function (count) {
+      origSetColumns.call(this, count);
+      autoSaveLayout();
+    };
+  }
+  // Patch showColumnSelector
+  if (wrapper.showColumnSelector) {
+    const origShowColSel = wrapper.showColumnSelector;
+    wrapper.showColumnSelector = function () {
+      origShowColSel.call(this);
+      autoSaveLayout();
+    };
+  }
+  return wrapper;
+};
+
+// Patch setColumns and showColumnSelector for all rows to enable autosave
+function patchRowAutosave() {
+  document.querySelectorAll(".row-wrapper").forEach((wrapper) => {
+    if (wrapper.setColumns) {
+      const origSetColumns = wrapper.setColumns;
+      wrapper.setColumns = function (count) {
+        origSetColumns.call(this, count);
+        autoSaveLayout();
+      };
+    }
+    if (wrapper.showColumnSelector) {
+      const origShowColSel = wrapper.showColumnSelector;
+      wrapper.showColumnSelector = function () {
+        origShowColSel.call(this);
+        autoSaveLayout();
+      };
+    }
+  });
+}
+
+// Call patchRowAutosave after restoring layout
+function restoreLayoutFromJson(layoutArr) {
+  document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
+  layoutArr.forEach((rowObj) => {
+    const wrapper = createRow();
+    layoutContainer.appendChild(wrapper);
+    setTimeout(() => {
+      initRowControls(wrapper);
+      // Always set columns using the same logic as column selector
+      if (rowObj.columns > 0) {
+        // Try to find the setColumns function from the row context
+        let row = wrapper.querySelector(".row");
+        if (row && typeof row.setColumns === "function") {
+          row.setColumns(rowObj.columns);
+        } else if (typeof wrapper.setColumns === "function") {
+          wrapper.setColumns(rowObj.columns);
+        } else {
+          // fallback: simulate click on the correct selector option
+          const selectorOptions = wrapper.querySelectorAll(".selector-option");
+          if (selectorOptions && selectorOptions.length) {
+            const idx = [1, 2, 3, 4].indexOf(rowObj.columns);
+            if (idx >= 0 && selectorOptions[idx]) selectorOptions[idx].click();
+          }
+        }
+      }
+    }, 0);
+  });
+  setTimeout(() => {
+    updateRowControls();
+    patchRowAutosave(); // Enable autosave for all rows
+    enableLayoutAutosaveObserver(); // Robust autosave for all changes
+  }, 100);
+}
