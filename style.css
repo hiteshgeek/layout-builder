@@ -122,7 +122,6 @@
   font-size: 14px;
   border: 2px solid #6f42c1;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
   padding: 0 10px;
   box-shadow: none;
   gap: 6px;
@@ -249,7 +248,6 @@ body {
   font-size: 14px;
   border: 2px solid #d32f2f;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, opacity 0.2s;
   padding: 0 10px;
   box-shadow: none;
   gap: 6px;
@@ -327,34 +325,47 @@ body {
   padding: 0 10px;
   gap: 6px;
   box-shadow: none;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.5s ease, color 0.5s ease,
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .row-control .btn:hover {
   background: #007bff;
   color: white;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  /* Only background and color change smoothly */
+  box-shadow: none;
 }
 
 .column:hover .col-drag-handle {
   opacity: 1;
 }
 
-.btn {
+.btn,
+.delete-btn,
+.change-layout-btn,
+.row-control .btn {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 24px;
   border-radius: 20px;
-  background: white;
-  color: #007bff;
   font-weight: bold;
   font-size: 14px;
-  border: 2px solid #007bff;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  padding: 0 10px;
   box-shadow: none;
   gap: 6px;
+  transition: background 0.5s ease, color 0.5s ease,
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn {
+  background: white;
+  color: #007bff;
+  border: 2px solid #007bff;
 }
 .btn:hover {
   background: #007bff;
@@ -362,45 +373,36 @@ body {
 }
 
 .delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 24px;
-  border-radius: 20px;
   background: white;
   color: #d32f2f;
-  font-weight: bold;
-  font-size: 14px;
   border: 2px solid #d32f2f;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  padding: 0 10px;
-  box-shadow: none;
-  gap: 6px;
 }
 .delete-btn:hover {
   background: #d32f2f;
   color: #fff;
 }
 
-.change-layout-icon {
-  margin-right: 6px;
+.change-layout-btn {
+  background: white;
+  color: #6f42c1;
+  border: 2px solid #6f42c1;
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  z-index: 9;
 }
-
+.change-layout-btn:hover,
 .change-layout-btn-hover {
   background: #6f42c1;
   color: #fff;
 }
 
-/* Button appear/hide animation */
-.row-control,
-.delete-btn,
-.change-layout-btn {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
+.row-control .btn {
+  border: 2px solid #007bff;
+}
+.row-control .btn:hover {
+  background: #007bff;
+  color: white;
 }
 
 .row-wrapper:hover .row-control.top,

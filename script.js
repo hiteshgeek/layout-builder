@@ -1,6 +1,6 @@
 const layoutContainer = document.getElementById("layoutContainer");
 const addRowBtn = document.getElementById("addRowBtn");
-const columnOptions = [1, 2, 3, 4, 6, 8];
+const columnOptions = [1, 2, 3, 4];
 
 function createRowControl(position = "top") {
   const control = document.createElement("div");
