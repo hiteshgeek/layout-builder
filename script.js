@@ -105,6 +105,7 @@ function createRow() {
     row.innerHTML = "";
     row.appendChild(rowDragHandle);
     row.appendChild(deleteBtn);
+    const columns = [];
     for (let i = 0; i < count; i++) {
       const col = document.createElement("div");
       col.classList.add("column");
@@ -115,7 +116,14 @@ function createRow() {
       colDragHandle.className = "col-drag-handle";
       colDragHandle.title = "Drag to reorder column";
       colDragHandle.setAttribute("draggable", "true");
-      colDragHandle.innerHTML = "&#x2630;";
+      colDragHandle.innerHTML = `<svg width="36" height="24" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto;">
+        <circle cx="7" cy="8" r="2" fill="#888"/>
+        <circle cx="18" cy="8" r="2" fill="#888"/>
+        <circle cx="29" cy="8" r="2" fill="#888"/>
+        <circle cx="7" cy="18" r="2" fill="#888"/>
+        <circle cx="18" cy="18" r="2" fill="#888"/>
+        <circle cx="29" cy="18" r="2" fill="#888"/>
+      </svg>`;
       colDragHandle.addEventListener("dragstart", (e) => {
         col.classList.add("dragging-col");
         e.dataTransfer.effectAllowed = "move";
@@ -146,8 +154,9 @@ function createRow() {
         }
       });
       col.appendChild(colDragHandle);
-      row.appendChild(col);
+      columns.push(col);
     }
+    columns.forEach((col) => row.appendChild(col));
     // Add change layout button
     const changeBtn = document.createElement("button");
     changeBtn.className = "change-layout-btn";

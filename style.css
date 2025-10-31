@@ -1,3 +1,38 @@
+.column {
+  position: relative;
+}
+/* Drag and drop handle for columns */
+.col-drag-handle {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  background: #f4f4f4;
+  z-index: 10;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.col-drag-handle svg circle {
+  transition: fill 0.2s;
+}
+
+.col-drag-handle:hover {
+  background: #e6f0ff;
+  border-color: #b3d1ff;
+}
+.col-drag-handle:hover svg circle {
+  fill: #007bff;
+}
 /* Drag and drop handle for rows */
 .row-drag-handle {
   position: absolute;
