@@ -1,28 +1,87 @@
+.col-1 {
+  flex: 0 0 calc(100% - 10px);
+}
+.col-2 {
+  flex: 0 0 calc(50% - 10px);
+}
+.col-3 {
+  flex: 0 0 calc(33.3333% - 10px);
+}
+.col-4 {
+  flex: 0 0 calc(25% - 10px);
+}
+.col-6 {
+  flex: 0 0 calc(16.6667% - 10px);
+}
+.col-8 {
+  flex: 0 0 calc(12.5% - 10px);
+}
+.row-drag-handle svg {
+  display: block;
+  margin: auto;
+  width: 16px;
+  height: 22px;
+}
 .column {
   position: relative;
 }
 /* Drag and drop handle for columns */
 .col-drag-handle {
   position: absolute;
-  top: -14px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 28px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  background: #f8f9fa;
+  z-index: 10;
+  padding: 2px 0;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.col-drag-handle svg {
+  width: 22px;
+  height: 16px;
+  display: block;
+  margin: auto;
+}
+/* Drag and drop handle for rows */
+.row-drag-handle {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: grab;
   user-select: none;
-  background: #f4f4f4;
+  background: #f8f9fa;
   z-index: 10;
-  padding: 0;
-  border-radius: 8px;
+  padding: 0 2px;
+  border-radius: 5px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.col-drag-handle svg circle {
+.row-wrapper:hover .row-drag-handle {
+  opacity: 1;
+}
+
+.row-drag-handle svg circle {
   transition: fill 0.2s;
 }
 
@@ -31,38 +90,6 @@
   border-color: #b3d1ff;
 }
 .col-drag-handle:hover svg circle {
-  fill: #007bff;
-}
-/* Drag and drop handle for rows */
-.row-drag-handle {
-  position: absolute;
-  left: -14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  user-select: none;
-  background: #f4f4f4;
-  z-index: 10;
-  padding: 0;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-.row-drag-handle svg circle {
-  transition: fill 0.2s;
-}
-
-.row-drag-handle:hover {
-  background: #e6f0ff;
-  border-color: #b3d1ff;
-}
-.row-drag-handle:hover svg circle {
   fill: #007bff;
 }
 /* Drag and drop feedback for rows */
@@ -280,4 +307,8 @@ body {
 .row-control .btn:hover {
   background: #007bff;
   color: white;
+}
+
+.column:hover .col-drag-handle {
+  opacity: 1;
 }
