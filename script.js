@@ -2,7 +2,7 @@
   // --- CSS Class Constants ---
   const CSS = {
     rowWrapper: "row-wrapper",
-    row: "row",
+    row: "layout-row",
     column: "column",
     colDragHandle: "col-drag-handle",
     rowDragHandle: "row-drag-handle",
@@ -218,7 +218,7 @@
   // --- Layout Serialization/Deserialization Utilities ---
   const serializeLayout = () =>
     $$(".row-wrapper").map((wrapper) => {
-      const row = $(".row", wrapper);
+      const row = $(".layout-row", wrapper);
       const cols = row ? $$(".column", row).length : 0;
       return { columns: cols };
     });
@@ -231,7 +231,7 @@
       setTimeout(() => {
         initRowControls(wrapper);
         if (rowObj.columns > 0) {
-          let row = wrapper.querySelector(".row");
+          let row = wrapper.querySelector(".layout-row");
           if (row && typeof row.setColumns === "function") {
             row.setColumns(rowObj.columns);
           } else if (typeof wrapper.setColumns === "function") {
@@ -533,6 +533,7 @@
     // Drag and drop for rows
     let rowDragHandle = DomHelpers.createDragHandle("row");
     attachRowDragEvents(rowDragHandle, wrapper);
+    // Drag handle visibility is managed by updateRowControls for all rows
 
     wrapper.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -571,7 +572,7 @@
     });
 
     const row = document.createElement("div");
-    row.classList.add("row");
+    row.classList.add("layout-row");
 
     // Always append deleteBtn to the row, before or after column selection
     function showColumnSelector() {
@@ -602,7 +603,7 @@
       const columns = [];
       for (let i = 0; i < count; i++) {
         const col = document.createElement("div");
-        col.classList.add("column", `col-${count}`);
+        col.classList.add("column", `layout-col-${count}`);
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
         plusBtn.innerHTML = "<span>+</span>";
         plusBtn.type = "button";
@@ -681,9 +682,11 @@
     const showDrag = rows.length > 1;
     rows.forEach((rowWrapper) => {
       // Always ensure drag handle is present and toggle its visibility
-      const rowDiv = rowWrapper.querySelector(".row");
+      const rowDiv = rowWrapper.querySelector(".layout-row");
       const dragHandle = rowDiv && rowDiv.querySelector(".row-drag-handle");
-      if (dragHandle) dragHandle.style.display = showDrag ? "" : "none";
+      if (dragHandle) {
+        dragHandle.style.display = showDrag ? "" : "none";
+      }
       initRowControls(rowWrapper);
     });
     rows.forEach((rowWrapper) => {
@@ -695,7 +698,11 @@
   // --- On load, always create a row (no addRowBtn) ---
   const initialRow = createRow();
   rowsWrapper.appendChild(initialRow);
+  // Hide drag handle for initial single row
   setTimeout(() => {
+    const rowDiv = initialRow.querySelector(".layout-row");
+    const dragHandle = rowDiv && rowDiv.querySelector(".row-drag-handle");
+    if (dragHandle) dragHandle.style.display = "none";
     initRowControls(initialRow);
     if (initialRow.updateDeleteBtnVisibility)
       initialRow.updateDeleteBtnVisibility();

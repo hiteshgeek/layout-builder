@@ -65,22 +65,22 @@
   opacity: 0.6;
   filter: grayscale(0.5);
 }
-.col-1 {
+.layout-col-1 {
   flex: 0 0 calc(100% - 10px);
 }
-.col-2 {
+.layout-col-2 {
   flex: 0 0 calc(50% - 10px);
 }
-.col-3 {
+.layout-col-3 {
   flex: 0 0 calc(33.3333% - 10px);
 }
-.col-4 {
+.layout-col-4 {
   flex: 0 0 calc(25% - 10px);
 }
-.col-6 {
+.layout-col-6 {
   flex: 0 0 calc(16.6667% - 10px);
 }
-.col-8 {
+.layout-col-8 {
   flex: 0 0 calc(12.5% - 10px);
 }
 .row-drag-handle svg {
@@ -213,7 +213,7 @@ body {
   margin: 25px 0;
 }
 
-.row {
+.layout-row {
   border: 1px dashed #ccc;
   padding: 25px;
   background: white;
