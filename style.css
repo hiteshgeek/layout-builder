@@ -214,7 +214,7 @@ body {
 }
 
 .row {
-  /* border: 1px dashed #ccc; */
+  border: 1px dashed #ccc;
   padding: 25px;
   background: white;
   display: flex;

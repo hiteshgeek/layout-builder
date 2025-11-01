@@ -227,7 +227,7 @@
     document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
     layoutArr.forEach((rowObj) => {
       const wrapper = createRow();
-      layoutContainer.appendChild(wrapper);
+      rowsWrapper.appendChild(wrapper);
       setTimeout(() => {
         initRowControls(wrapper);
         if (rowObj.columns > 0) {
@@ -266,7 +266,7 @@
     addAbove.addEventListener("click", () => {
       const newRow = createRow();
       newRow.classList.add("row-animate-in");
-      layoutContainer.insertBefore(newRow, rowWrapper);
+      rowsWrapper.insertBefore(newRow, rowWrapper);
       setTimeout(() => {
         newRow.classList.remove("row-animate-in");
         initRowControls(newRow);
@@ -286,9 +286,9 @@
       const newRow = createRow();
       newRow.classList.add("row-animate-in");
       if (rowWrapper.nextSibling) {
-        layoutContainer.insertBefore(newRow, rowWrapper.nextSibling);
+        rowsWrapper.insertBefore(newRow, rowWrapper.nextSibling);
       } else {
-        layoutContainer.appendChild(newRow);
+        rowsWrapper.appendChild(newRow);
       }
       setTimeout(() => {
         newRow.classList.remove("row-animate-in");
@@ -304,6 +304,11 @@
 
   // --- UI Controls ---
   const layoutContainer = $("#layoutContainer");
+  // Add a wrapper for all rows
+  const rowsWrapper = document.createElement("div");
+  rowsWrapper.className = "rows-wrapper";
+  layoutContainer.appendChild(rowsWrapper);
+
   const layoutSelect = document.createElement("select");
   layoutSelect.className = "layout-load-select";
   layoutSelect.innerHTML = '<option value="">Select layout...</option>';
@@ -454,7 +459,7 @@
       // Clear everything and show save button again
       document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
       const newRow = createRow();
-      layoutContainer.appendChild(newRow);
+      rowsWrapper.appendChild(newRow);
       setTimeout(() => {
         initRowControls(newRow);
         if (newRow.updateDeleteBtnVisibility)
@@ -571,9 +576,7 @@
     // Always append deleteBtn to the row, before or after column selection
     function showColumnSelector() {
       row.innerHTML = "";
-      if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
-        row.appendChild(rowDragHandle);
-      }
+      row.appendChild(rowDragHandle); // Always append drag handle
       row.appendChild(deleteBtn);
       updateDeleteBtnVisibility();
       let currentColCount = wrapper._currentColCount || 0;
@@ -587,14 +590,13 @@
         );
       });
       row.appendChild(selector);
+      updateRowControls();
     }
 
     function setColumns(count) {
       row.innerHTML = "";
       wrapper._currentColCount = count;
-      if (layoutContainer.querySelectorAll(".row-wrapper").length > 1) {
-        row.appendChild(rowDragHandle);
-      }
+      row.appendChild(rowDragHandle); // Always append drag handle
       row.appendChild(deleteBtn);
       updateDeleteBtnVisibility();
       const columns = [];
@@ -675,11 +677,16 @@
   // --- Update row controls for all rows ---
   function updateRowControls() {
     document.querySelectorAll(".row-control").forEach((el) => el.remove());
-    const rows = layoutContainer.querySelectorAll(".row-wrapper");
+    const rows = rowsWrapper.querySelectorAll(".row-wrapper");
+    const showDrag = rows.length > 1;
     rows.forEach((rowWrapper) => {
+      // Always ensure drag handle is present and toggle its visibility
+      const rowDiv = rowWrapper.querySelector(".row");
+      const dragHandle = rowDiv && rowDiv.querySelector(".row-drag-handle");
+      if (dragHandle) dragHandle.style.display = showDrag ? "" : "none";
       initRowControls(rowWrapper);
     });
-    document.querySelectorAll(".row-wrapper").forEach((rowWrapper) => {
+    rows.forEach((rowWrapper) => {
       if (rowWrapper.updateDeleteBtnVisibility)
         rowWrapper.updateDeleteBtnVisibility();
     });
@@ -687,7 +694,7 @@
 
   // --- On load, always create a row (no addRowBtn) ---
   const initialRow = createRow();
-  layoutContainer.appendChild(initialRow);
+  rowsWrapper.appendChild(initialRow);
   setTimeout(() => {
     initRowControls(initialRow);
     if (initialRow.updateDeleteBtnVisibility)
