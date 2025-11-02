@@ -551,7 +551,7 @@ function updateModeUI() {
   const ROW_HEIGHT_DEFAULT_MULTIPLIER = 3;
   const ROW_HEIGHT_MIN_MULTIPLIER = 1;
   const ROW_HEIGHT_MAX_MULTIPLIER = 6;
-  const ROW_HEIGHT_STEPPER = 0.5;
+  const ROW_HEIGHT_STEPPER = 1;
 
   // --- Helper to animate row removal ---
   function animateRowRemove(rowElem, callback) {

@@ -1,3 +1,21 @@
+:root {
+  --primary-color: #2196f3;
+  --primary-color-light: #e3f2fd;
+  --danger-color: #e53935;
+  --background: #fff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --spacing: 10px;
+  --column-gap: 20px;
+  --plus-btn-size: 32px;
+  --plus-btn-font-size: 1.6em;
+  --handle-size: 28px;
+  --handle-color: #888;
+  --delete-btn-bg: #fff;
+  --delete-btn-color: var(--danger-color);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Drag handle SVG styles */
 .drag-handle-svg {
   display: block;
@@ -133,23 +151,6 @@
 
 .row-wrapper .column {
   height: 100%;
-}
-:root {
-  --primary-color: #2196f3;
-  --primary-color-light: #e3f2fd;
-  --danger-color: #e53935;
-  --background: #fff;
-  --border-radius: 8px;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --spacing: 10px;
-  --column-gap: 10px;
-  --plus-btn-size: 32px;
-  --plus-btn-font-size: 1.6em;
-  --handle-size: 28px;
-  --handle-color: #888;
-  --delete-btn-bg: #fff;
-  --delete-btn-color: var(--danger-color);
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #layoutName {
@@ -506,12 +507,20 @@ body {
   box-shadow: none;
   gap: 5px;
   padding: 0 8px;
-  border: 1px solid transparent;
+  /* border: 1px solid transparent; */
   background: white;
   transition: background 0.5s ease, color 0.5s ease,
     opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* .row-height-controls .row-height-dec {
+  border-radius: 14px 0 0 14px;
+}
+
+.row-height-controls .row-height-inc {
+  border-radius: 0 14px 14px 0;
+} */
 
 .row-control .btn {
   color: #007bff;
