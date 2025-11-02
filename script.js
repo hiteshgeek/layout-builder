@@ -814,6 +814,68 @@ function updateModeUI() {
       updateDeleteBtnVisibility();
 
       const columns = [];
+      function addColumnControls(col, colWrapper, wrapper) {
+        function updateColDeleteBtns() {
+          const cols = colWrapper.querySelectorAll(":scope > .column");
+          cols.forEach((c) => {
+            const delBtn = c.querySelector(".col-delete-btn");
+            if (delBtn) {
+              delBtn.style.display = cols.length <= 1 ? "none" : "";
+            }
+          });
+        }
+        // Use DomHelpers.createButton for consistent structure
+        // Add Above
+        const addAboveBtn = DomHelpers.createButton(
+          "Add Column Above",
+          "col-add-above-btn btn",
+          "fa fa-plus"
+        );
+        addAboveBtn.title = "Add column above";
+        addAboveBtn.onclick = function (e) {
+          e.stopPropagation();
+          const maxCols = wrapper._heightMultiplier || 3;
+          if (colWrapper.children.length < maxCols) {
+            const newCol = col.cloneNode(true);
+            colWrapper.insertBefore(newCol, col);
+            updateColDeleteBtns();
+          }
+        };
+
+        // Add Below
+        const addBelowBtn = DomHelpers.createButton(
+          "Add Column Below",
+          "col-add-below-btn btn",
+          "fa fa-plus"
+        );
+        addBelowBtn.title = "Add column below";
+        addBelowBtn.onclick = function (e) {
+          e.stopPropagation();
+          const maxCols = wrapper._heightMultiplier || 3;
+          if (colWrapper.children.length < maxCols) {
+            const newCol = col.cloneNode(true);
+            if (col.nextSibling) {
+              colWrapper.insertBefore(newCol, col.nextSibling);
+            } else {
+              colWrapper.appendChild(newCol);
+            }
+            updateColDeleteBtns();
+          }
+        };
+
+        // Controls containers (define after buttons)
+        const topCtrl = document.createElement("div");
+        topCtrl.className = "col-control col-control-top";
+        topCtrl.appendChild(addAboveBtn);
+
+        const botCtrl = document.createElement("div");
+        botCtrl.className = "col-control col-control-bottom";
+        botCtrl.appendChild(addBelowBtn);
+
+        col.appendChild(topCtrl);
+        col.appendChild(botCtrl);
+        updateColDeleteBtns();
+      }
       for (let i = 0; i < count; i++) {
         // Create the column
         const col = document.createElement("div");
@@ -822,9 +884,7 @@ function updateModeUI() {
         // Create the wrapper
         const colWrapper = document.createElement("div");
         colWrapper.classList.add("column-wrapper", `layout-col-${count}`);
-        colWrapper.style.display = "flex";
-        colWrapper.style.flexDirection = "column";
-        colWrapper.style.height = "100%"; // Ensures full row height
+  // Style moved to CSS
 
         // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
@@ -842,6 +902,7 @@ function updateModeUI() {
 
         // Append the column to its wrapper
         colWrapper.appendChild(col);
+        addColumnControls(col, colWrapper, wrapper);
         columns.push(colWrapper);
       }
       columns.forEach((colWrapper) => row.appendChild(colWrapper));

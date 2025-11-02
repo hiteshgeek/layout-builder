@@ -1,8 +1,8 @@
-.studio-mode .row-wrapper {
-  border: 1px dashed #ccc;
-}
-.view-mode .row-wrapper {
-  border: none;
+.column-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* gap: 20px 0; */
 }
 :root {
   --primary-color: #2196f3;
@@ -22,18 +22,52 @@
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.col-control {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.col-control-top {
+  top: 0;
+  transform: translate(-50%, -50%);
+}
+.col-control-bottom {
+  bottom: 0;
+  transform: translate(-50%, 50%);
+}
+
+.column {
+  position: relative;
+}
+
+.col-delete-btn {
+  display: none;
+}
+
+.studio-mode .row-wrapper {
+  border: 1px dashed #ccc;
+}
+
+.view-mode .row-wrapper {
+  border: none;
+}
+
 /* Drag handle SVG styles */
 .drag-handle-svg {
   display: block;
 }
+
 .drag-handle-row {
   width: 24px;
   height: 36px;
 }
+
 .drag-handle-col {
   width: 36px;
   height: 24px;
 }
+
 .drag-handle-svg circle {
   fill: #888;
 }
@@ -257,6 +291,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  gap: 20px 0;
 }
 
 .column {
@@ -531,7 +566,8 @@ body {
 .delete-btn,
 .change-layout-btn,
 .row-control .btn,
-.row-height-controls .btn {
+.row-height-controls .btn,
+.col-control .btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -558,11 +594,13 @@ body {
   border-radius: 0 14px 14px 0;
 } */
 
-.row-control .btn {
+.row-control .btn,
+.col-control .btn {
   color: #007bff;
   border-color: #007bff;
 }
-.row-control .btn:hover {
+.row-control .btn:hover,
+.col-control .btn:hover {
   background: #007bff;
   color: #fff;
 }
