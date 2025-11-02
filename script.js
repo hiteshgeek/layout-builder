@@ -34,8 +34,10 @@ function updateModeUI() {
     });
 
   // Toggle mode class on body for border style
-  document.body.classList.toggle("studio-mode", mode === "studio");
-  document.body.classList.toggle("view-mode", mode === "view");
+  let layoutContainer = document.getElementById("layoutContainer");
+
+  layoutContainer.classList.toggle("studio-mode", mode === "studio");
+  layoutContainer.classList.toggle("view-mode", mode === "view");
 }
 
 (function LayoutBuilderLibrary() {

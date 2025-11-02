@@ -2,7 +2,7 @@
   border: 1px dashed #ccc;
 }
 .view-mode .row-wrapper {
-  border: 1px solid #ccc;
+  border: none;
 }
 :root {
   --primary-color: #2196f3;
@@ -156,6 +156,9 @@
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
+}
+
+.studio-mode .rows-wrapper {
   padding: 15px;
 }
 
@@ -389,6 +392,9 @@ body {
   justify-content: space-between;
   position: relative;
   height: 100%;
+}
+
+.studio-mode .layout-row {
   padding: 20px;
 }
 
