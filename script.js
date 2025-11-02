@@ -64,11 +64,6 @@ function updateModeUI() {
   // Reusable: Update add column button visibility for all columns in a column-wrapper
   function updateAllAddColButtons(colWrapper, wrapper) {
     const maxCols = wrapper._heightMultiplier || 3;
-    console.log("updateAllAddColButtons called", {
-      colWrapper,
-      maxCols,
-      currentCols: colWrapper.children.length,
-    });
     const show = colWrapper.children.length < maxCols;
     colWrapper.querySelectorAll(".column").forEach((col) => {
       // Remove all existing add controls
@@ -80,9 +75,7 @@ function updateModeUI() {
           "col-add-above-btn btn",
           "fa fa-plus"
         );
-        console.log("addAboveBtn handler attached");
         addAboveBtn.onclick = function (e) {
-          console.log("addAboveBtn handler triggered");
           e.stopPropagation();
           if (colWrapper.children.length < maxCols) {
             const newCol = col.cloneNode(true);
@@ -95,23 +88,12 @@ function updateModeUI() {
             }
             updateColDeleteBtns(colWrapper);
             updateAllAddColButtons(colWrapper, wrapper);
-            // Print current col count and maxCols after adding
-            console.log(
-              "[addAboveBtn] After add: colWrapper.children.length =",
-              colWrapper.children.length,
-              ", maxCols =",
-              maxCols
-            );
             // Disable decBtn if now at max columns
             if (
               colWrapper.children.length >= maxCols &&
               wrapper._heightControls &&
               wrapper._heightControls._updateBtnDisabled
             ) {
-              console.log(
-                "Max columns reached, disabling row decrease button for row:",
-                wrapper
-              );
               wrapper._heightControls._updateBtnDisabled();
             }
           }
@@ -139,23 +121,13 @@ function updateModeUI() {
             }
             updateColDeleteBtns(colWrapper);
             updateAllAddColButtons(colWrapper, wrapper);
-            // Print current col count and maxCols after adding
-            console.log(
-              "[addBelowBtn] After add: colWrapper.children.length =",
-              colWrapper.children.length,
-              ", maxCols =",
-              maxCols
-            );
+
             // Disable decBtn if now at max columns
             if (
               colWrapper.children.length >= maxCols &&
               wrapper._heightControls &&
               wrapper._heightControls._updateBtnDisabled
             ) {
-              console.log(
-                "Max columns reached, disabling row decrease button for row:",
-                wrapper
-              );
               wrapper._heightControls._updateBtnDisabled();
             }
           }
@@ -260,15 +232,6 @@ function updateModeUI() {
             attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
           }
           updateColDeleteBtns();
-          // Print current col count and maxCols after adding
-          console.log(
-            "[setAddColButtonsVisible:addAboveBtn] After add: colWrapper.children.length =",
-            colWrapper.children.length,
-            ", maxCols =",
-            maxCols
-          );
-
-          console.log(colWrapper.children.length, wrapper._heightMultiplier);
           // After adding, check if we hit max and update all
           if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
             colWrapper.querySelectorAll(".column").forEach((c) => {
@@ -308,13 +271,6 @@ function updateModeUI() {
             attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
           }
           updateColDeleteBtns();
-          // Print current col count and maxCols after adding
-          console.log(
-            "[setAddColButtonsVisible:addBelowBtn] After add: colWrapper.children.length =",
-            colWrapper.children.length,
-            ", maxCols =",
-            maxCols
-          );
           // After adding, check if we hit max and update all
           if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
             colWrapper.querySelectorAll(".column").forEach((c) => {
@@ -975,31 +931,19 @@ function updateModeUI() {
       incBtn.innerHTML = "<i class='fa fa-plus'></i>";
 
       function updateBtnDisabled() {
-        // Count columns only in the first .column-wrapper of this row
-        let colWrapper = wrapper.querySelector(".column-wrapper");
-        let colCount = colWrapper
-          ? colWrapper.querySelectorAll(".column").length
-          : 0;
-        console.log(
-          "[updateBtnDisabled] colWrapper:",
-          colWrapper,
-          "colCount:",
-          colCount
-        );
-        // Disable if at min, or if decreasing would make height less than col count
+        // Find the max column count among all column-wrappers in this row
+        let wrappers = wrapper.querySelectorAll(".column-wrapper");
+        let maxColCount = 0;
+        wrappers.forEach((cw) => {
+          const count = cw.querySelectorAll(".column").length;
+          if (count > maxColCount) maxColCount = count;
+        });
+        // Disable if at min, or if decreasing would make height less than maxColCount
         decBtn.disabled =
           wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER ||
-          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER < colCount;
+          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER < maxColCount;
         incBtn.disabled =
           wrapper._heightMultiplier >= ROW_HEIGHT_MAX_MULTIPLIER;
-
-        console.log("[updateBtnDisabled] called:", {
-          rowHeight: wrapper._heightMultiplier,
-          min: ROW_HEIGHT_MIN_MULTIPLIER,
-          max: ROW_HEIGHT_MAX_MULTIPLIER,
-          colCount,
-          decBtnDisabled: decBtn.disabled,
-        });
       }
 
       decBtn.onclick = function (e) {
@@ -1008,8 +952,13 @@ function updateModeUI() {
         const row = wrapper.querySelector(".layout-row");
         let atMaxCols = false;
         if (row) {
-          const columns = row.querySelectorAll(".column-wrapper .column");
-          atMaxCols = columns.length >= wrapper._heightMultiplier;
+          const columnWrappers = row.querySelectorAll(".column-wrapper");
+          let maxColumns = 0;
+          columnWrappers.forEach((wrapper) => {
+            const colCount = wrapper.querySelectorAll(".column").length;
+            if (colCount > maxColumns) maxColumns = colCount;
+          });
+          atMaxCols = maxColumns >= wrapper._heightMultiplier;
         }
         if (
           wrapper._heightMultiplier - ROW_HEIGHT_STEPPER >=
@@ -1018,7 +967,8 @@ function updateModeUI() {
         ) {
           wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
           updateRowHeight();
-          // Do not call updateBtnDisabled here; only after add/remove column
+          // Visually update the button state immediately
+          if (typeof updateBtnDisabled === "function") updateBtnDisabled();
           if (row) {
             row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
               updateAllAddColButtons(colWrapper, wrapper);
@@ -1034,7 +984,8 @@ function updateModeUI() {
         ) {
           wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
           updateRowHeight();
-          // Do not call updateBtnDisabled here; only after add/remove column
+          // Visually update the button state immediately
+          if (typeof updateBtnDisabled === "function") updateBtnDisabled();
         }
 
         const row = wrapper.querySelector(".layout-row");
