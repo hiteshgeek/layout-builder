@@ -548,10 +548,10 @@ function updateModeUI() {
   const columnOptions = [1, 2, 3, 4];
 
   // --- Row Height Constants ---
-  const ROW_HEIGHT_BASE = 100; // px
   const ROW_HEIGHT_DEFAULT_MULTIPLIER = 3;
   const ROW_HEIGHT_MIN_MULTIPLIER = 1;
   const ROW_HEIGHT_MAX_MULTIPLIER = 6;
+  const ROW_HEIGHT_STEPPER = 0.5;
 
   // --- Helper to animate row removal ---
   function animateRowRemove(rowElem, callback) {
@@ -647,7 +647,12 @@ function updateModeUI() {
     function updateRowHeightLabel() {
       const label = wrapper.querySelector(".row-height-label");
       if (label) {
-        label.textContent = `Height : ${wrapper._heightMultiplier}`;
+        let value = wrapper._heightMultiplier;
+        // Show as decimal if ROW_HEIGHT_STEPPER is decimal
+        if (ROW_HEIGHT_STEPPER % 1 !== 0) {
+          value = value.toFixed(1);
+        }
+        label.textContent = `Height : ${value}`;
       }
     }
 
@@ -677,16 +682,22 @@ function updateModeUI() {
 
       decBtn.onclick = function (e) {
         e.stopPropagation();
-        if (wrapper._heightMultiplier > ROW_HEIGHT_MIN_MULTIPLIER) {
-          wrapper._heightMultiplier--;
+        if (
+          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER >=
+          ROW_HEIGHT_MIN_MULTIPLIER
+        ) {
+          wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
           updateRowHeight();
           updateBtnDisabled();
         }
       };
       incBtn.onclick = function (e) {
         e.stopPropagation();
-        if (wrapper._heightMultiplier < ROW_HEIGHT_MAX_MULTIPLIER) {
-          wrapper._heightMultiplier++;
+        if (
+          wrapper._heightMultiplier + ROW_HEIGHT_STEPPER <=
+          ROW_HEIGHT_MAX_MULTIPLIER
+        ) {
+          wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
           updateRowHeight();
           updateBtnDisabled();
         }

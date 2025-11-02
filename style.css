@@ -119,8 +119,8 @@
 :root {
   --row-height-base: 100px;
   --row-height-multiplier: 3;
-  --row-height-min: 1;
-  --row-height-max: 6;
+  /* --row-height-min: 1;
+  --row-height-max: 6; */
 }
 
 .row-wrapper {
