@@ -64,6 +64,11 @@ function updateModeUI() {
   // Reusable: Update add column button visibility for all columns in a column-wrapper
   function updateAllAddColButtons(colWrapper, wrapper) {
     const maxCols = wrapper._heightMultiplier || 3;
+    console.log("updateAllAddColButtons called", {
+      colWrapper,
+      maxCols,
+      currentCols: colWrapper.children.length,
+    });
     const show = colWrapper.children.length < maxCols;
     colWrapper.querySelectorAll(".column").forEach((col) => {
       // Remove all existing add controls
@@ -75,7 +80,9 @@ function updateModeUI() {
           "col-add-above-btn btn",
           "fa fa-plus"
         );
+        console.log("addAboveBtn handler attached");
         addAboveBtn.onclick = function (e) {
+          console.log("addAboveBtn handler triggered");
           e.stopPropagation();
           if (colWrapper.children.length < maxCols) {
             const newCol = col.cloneNode(true);
@@ -88,6 +95,25 @@ function updateModeUI() {
             }
             updateColDeleteBtns(colWrapper);
             updateAllAddColButtons(colWrapper, wrapper);
+            // Print current col count and maxCols after adding
+            console.log(
+              "[addAboveBtn] After add: colWrapper.children.length =",
+              colWrapper.children.length,
+              ", maxCols =",
+              maxCols
+            );
+            // Disable decBtn if now at max columns
+            if (
+              colWrapper.children.length >= maxCols &&
+              wrapper._heightControls &&
+              wrapper._heightControls._updateBtnDisabled
+            ) {
+              console.log(
+                "Max columns reached, disabling row decrease button for row:",
+                wrapper
+              );
+              wrapper._heightControls._updateBtnDisabled();
+            }
           }
         };
         // Add Below
@@ -113,6 +139,25 @@ function updateModeUI() {
             }
             updateColDeleteBtns(colWrapper);
             updateAllAddColButtons(colWrapper, wrapper);
+            // Print current col count and maxCols after adding
+            console.log(
+              "[addBelowBtn] After add: colWrapper.children.length =",
+              colWrapper.children.length,
+              ", maxCols =",
+              maxCols
+            );
+            // Disable decBtn if now at max columns
+            if (
+              colWrapper.children.length >= maxCols &&
+              wrapper._heightControls &&
+              wrapper._heightControls._updateBtnDisabled
+            ) {
+              console.log(
+                "Max columns reached, disabling row decrease button for row:",
+                wrapper
+              );
+              wrapper._heightControls._updateBtnDisabled();
+            }
           }
         };
         // Controls containers (define after buttons)
@@ -163,9 +208,26 @@ function updateModeUI() {
           col.removeEventListener("animationend", handler);
           col.remove();
           updateColDeleteBtns(colWrapper);
-          // Restore add column buttons if below max
-          if (colWrapper.children.length < (wrapper._heightMultiplier || 3)) {
-            updateAllAddColButtons(colWrapper, wrapper);
+          // Always update add column buttons for all wrappers in the row
+          const row = wrapper.querySelector(".layout-row");
+          if (row) {
+            row.querySelectorAll(".column-wrapper").forEach((cw) => {
+              updateAllAddColButtons(cw, wrapper);
+              // If now below max, restore add controls for all columns
+              if (cw.children.length < (wrapper._heightMultiplier || 3)) {
+                cw.querySelectorAll(".column").forEach((c) => {
+                  if (typeof c._addColControls === "function")
+                    c._addColControls(true);
+                });
+              }
+            });
+          }
+          // Always re-enable decBtn if needed
+          if (
+            wrapper._heightControls &&
+            wrapper._heightControls._updateBtnDisabled
+          ) {
+            wrapper._heightControls._updateBtnDisabled();
           }
         });
       }
@@ -196,12 +258,28 @@ function updateModeUI() {
             attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
           }
           updateColDeleteBtns();
+          // Print current col count and maxCols after adding
+          console.log(
+            "[setAddColButtonsVisible:addAboveBtn] After add: colWrapper.children.length =",
+            colWrapper.children.length,
+            ", maxCols =",
+            maxCols
+          );
+
+          console.log(colWrapper.children.length, wrapper._heightMultiplier);
           // After adding, check if we hit max and update all
           if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
             colWrapper.querySelectorAll(".column").forEach((c) => {
               const fn = c._addColControls || (() => {});
               fn(false);
             });
+          }
+          // Ensure row height controls are updated
+          if (
+            wrapper._heightControls &&
+            wrapper._heightControls._updateBtnDisabled
+          ) {
+            wrapper._heightControls._updateBtnDisabled();
           }
         }
       };
@@ -228,12 +306,26 @@ function updateModeUI() {
             attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
           }
           updateColDeleteBtns();
+          // Print current col count and maxCols after adding
+          console.log(
+            "[setAddColButtonsVisible:addBelowBtn] After add: colWrapper.children.length =",
+            colWrapper.children.length,
+            ", maxCols =",
+            maxCols
+          );
           // After adding, check if we hit max and update all
           if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
             colWrapper.querySelectorAll(".column").forEach((c) => {
               const fn = c._addColControls || (() => {});
               fn(false);
             });
+          }
+          // Ensure row height controls are updated
+          if (
+            wrapper._heightControls &&
+            wrapper._heightControls._updateBtnDisabled
+          ) {
+            wrapper._heightControls._updateBtnDisabled();
           }
         }
       };
@@ -881,23 +973,45 @@ function updateModeUI() {
       incBtn.innerHTML = "<i class='fa fa-plus'></i>";
 
       function updateBtnDisabled() {
+        const row = wrapper.querySelector(".layout-row");
+        let colCount = 0;
+        if (row) {
+          colCount = row.querySelectorAll(".column-wrapper .column").length;
+        }
+        // Disable if at min, or if decreasing would make height less than col count
         decBtn.disabled =
-          wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER;
+          wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER ||
+          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER < colCount;
         incBtn.disabled =
           wrapper._heightMultiplier >= ROW_HEIGHT_MAX_MULTIPLIER;
+
+        console.log("[updateBtnDisabled] called:", {
+          rowHeight: wrapper._heightMultiplier,
+          min: ROW_HEIGHT_MIN_MULTIPLIER,
+          max: ROW_HEIGHT_MAX_MULTIPLIER,
+          colCount,
+          decBtnDisabled: decBtn.disabled,
+        });
       }
 
       decBtn.onclick = function (e) {
         e.stopPropagation();
+        if (decBtn.disabled) return;
+        const row = wrapper.querySelector(".layout-row");
+        let atMaxCols = false;
+        if (row) {
+          const columns = row.querySelectorAll(".column-wrapper .column");
+          atMaxCols = columns.length >= wrapper._heightMultiplier;
+        }
         if (
           wrapper._heightMultiplier - ROW_HEIGHT_STEPPER >=
-          ROW_HEIGHT_MIN_MULTIPLIER
+            ROW_HEIGHT_MIN_MULTIPLIER &&
+          !atMaxCols
         ) {
           wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
           updateRowHeight();
           updateBtnDisabled();
 
-          const row = wrapper.querySelector(".layout-row");
           if (row) {
             row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
               updateAllAddColButtons(colWrapper, wrapper);
@@ -935,6 +1049,8 @@ function updateModeUI() {
       // Ensure the label is updated after it is in the DOM
       setTimeout(updateRowHeightLabel, 0);
       heightControls.appendChild(incBtn);
+      // Expose updateBtnDisabled for external use (after column deletion)
+      heightControls._updateBtnDisabled = updateBtnDisabled;
       return heightControls;
     }
     // --- Row Creation Logic ---
@@ -1025,6 +1141,7 @@ function updateModeUI() {
       // Row height controls
       const heightControls = createHeightControls();
       heightControls.classList.add("row-border-btn");
+      wrapper._heightControls = heightControls;
       topBtnBar.appendChild(heightControls);
       row.appendChild(topBtnBar);
       updateDeleteBtnVisibility();
