@@ -21,7 +21,7 @@ function updateModeUI() {
   // Add Row Above/Below, Delete Row, Change Layout, Drag Handles
   document
     .querySelectorAll(
-      ".row-control, .delete-btn, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn"
+      ".row-control, .delete-btn, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar"
     )
     .forEach((el) => {
       if (el) el.style.display = show ? "" : "none";
@@ -637,24 +637,43 @@ function updateModeUI() {
       const decBtn = document.createElement("button");
       decBtn.className = "row-height-dec btn btn-xs btn-default";
       decBtn.innerHTML = "<i class='fa fa-minus'></i>";
+      const incBtn = document.createElement("button");
+      incBtn.className = "row-height-inc btn btn-xs btn-default";
+      incBtn.innerHTML = "<i class='fa fa-plus'></i>";
+
+      function updateBtnDisabled() {
+        decBtn.disabled =
+          wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER;
+        incBtn.disabled =
+          wrapper._heightMultiplier >= ROW_HEIGHT_MAX_MULTIPLIER;
+      }
+
       decBtn.onclick = function (e) {
         e.stopPropagation();
         if (wrapper._heightMultiplier > ROW_HEIGHT_MIN_MULTIPLIER) {
           wrapper._heightMultiplier--;
           updateRowHeight();
+          updateBtnDisabled();
         }
       };
-      const incBtn = document.createElement("button");
-      incBtn.className = "row-height-inc btn btn-xs btn-default";
-      incBtn.innerHTML = "<i class='fa fa-plus'></i>";
       incBtn.onclick = function (e) {
         e.stopPropagation();
         if (wrapper._heightMultiplier < ROW_HEIGHT_MAX_MULTIPLIER) {
           wrapper._heightMultiplier++;
           updateRowHeight();
+          updateBtnDisabled();
         }
       };
+
+      // Initial state
+      setTimeout(updateBtnDisabled, 0);
+
       heightControls.appendChild(decBtn);
+      // Add a text label between the buttons
+      const heightLabel = document.createElement("span");
+      heightLabel.textContent = "Height";
+      heightLabel.className = "row-height-label";
+      heightControls.appendChild(heightLabel);
       heightControls.appendChild(incBtn);
       return heightControls;
     }
@@ -669,35 +688,9 @@ function updateModeUI() {
       );
       row.appendChild(rowDragHandle);
       row.appendChild(deleteBtn);
-      // Create a container for top border buttons
-      const topBtnBar = document.createElement("div");
-      topBtnBar.className = "row-top-btn-bar";
-      // Change layout button
-      const changeBtnSC = document.createElement("button");
-      changeBtnSC.className = "change-layout-btn";
-      const changeIconSC = document.createElement("i");
-      changeIconSC.className = "fa fa-random";
-      changeIconSC.setAttribute("aria-hidden", "true");
-      changeBtnSC.appendChild(changeIconSC);
-      const changeTextSC = document.createElement("span");
-      changeTextSC.textContent = "Change layout";
-      changeBtnSC.appendChild(changeTextSC);
-      changeBtnSC.addEventListener("mouseenter", () => {
-        changeBtnSC.classList.add("change-layout-btn-hover");
-      });
-      changeBtnSC.addEventListener("mouseleave", () => {
-        changeBtnSC.classList.remove("change-layout-btn-hover");
-      });
-      changeBtnSC.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showColumnSelector();
-      });
-      topBtnBar.appendChild(changeBtnSC);
-      // Row height controls
-      const heightControls = createHeightControls();
-      heightControls.classList.add("row-border-btn");
-      topBtnBar.appendChild(heightControls);
-      row.appendChild(topBtnBar);
+      // Remove any existing row-top-btn-bar (hide it while selector is shown)
+      const existingBtnBar = row.querySelector(".row-top-btn-bar");
+      if (existingBtnBar) existingBtnBar.remove();
       updateDeleteBtnVisibility();
       let currentColCount = wrapper._currentColCount || 0;
       const selector = document.createElement("div");
@@ -724,8 +717,37 @@ function updateModeUI() {
       );
       row.appendChild(rowDragHandle);
       row.appendChild(deleteBtn);
-      // Find the existing change layout button and add height controls next to it
-      // (change layout button is added below after columns)
+      // Add row-top-btn-bar only after columns are set
+      const topBtnBar = document.createElement("div");
+      topBtnBar.className = "row-top-btn-bar";
+      // Change layout button
+      const changeBtnSC = document.createElement("button");
+      changeBtnSC.className = "change-layout-btn";
+      const changeIconSC = document.createElement("i");
+      changeIconSC.className = "fa fa-random";
+      changeIconSC.setAttribute("aria-hidden", "true");
+      changeBtnSC.appendChild(changeIconSC);
+      const changeTextSC = document.createElement("span");
+      changeTextSC.textContent = "Change layout";
+      changeBtnSC.appendChild(changeTextSC);
+      changeBtnSC.addEventListener("mouseenter", () => {
+        changeBtnSC.classList.add("change-layout-btn-hover");
+      });
+      changeBtnSC.addEventListener("mouseleave", () => {
+        changeBtnSC.classList.remove("change-layout-btn-hover");
+      });
+      changeBtnSC.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (typeof wrapper.showColumnSelector === "function") {
+          wrapper.showColumnSelector();
+        }
+      });
+      topBtnBar.appendChild(changeBtnSC);
+      // Row height controls
+      const heightControls = createHeightControls();
+      heightControls.classList.add("row-border-btn");
+      topBtnBar.appendChild(heightControls);
+      row.appendChild(topBtnBar);
       updateDeleteBtnVisibility();
       const columns = [];
       for (let i = 0; i < count; i++) {
@@ -745,34 +767,7 @@ function updateModeUI() {
         columns.push(col);
       }
       columns.forEach((col) => row.appendChild(col));
-      // Restore original change layout button
-      const changeBtn = document.createElement("button");
-      changeBtn.className = "change-layout-btn";
-      const changeIcon = document.createElement("i");
-      changeIcon.className = "fa fa-random";
-      changeIcon.setAttribute("aria-hidden", "true");
-      changeBtn.appendChild(changeIcon);
-      const changeText = document.createElement("span");
-      changeText.textContent = "Change layout";
-      changeBtn.appendChild(changeText);
-      changeBtn.addEventListener("mouseenter", () => {
-        changeBtn.classList.add("change-layout-btn-hover");
-      });
-      changeBtn.addEventListener("mouseleave", () => {
-        changeBtn.classList.remove("change-layout-btn-hover");
-      });
-      changeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showColumnSelector();
-      });
-      // Add row height controls next to change layout button
-      const heightControls = createHeightControls();
-      heightControls.classList.add("row-border-btn");
-      const btnBar = document.createElement("div");
-      btnBar.className = "row-top-btn-bar";
-      btnBar.appendChild(changeBtn);
-      btnBar.appendChild(heightControls);
-      row.appendChild(btnBar);
+      // Do NOT add another .change-layout-btn here (already in .row-top-btn-bar)
       updateRowControls();
     }
 
