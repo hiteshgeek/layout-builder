@@ -222,12 +222,14 @@ function updateModeUI() {
               }
             });
           }
-          // Always re-enable decBtn if needed
+          // Always re-enable decBtn if needed, defer to ensure DOM is updated
           if (
             wrapper._heightControls &&
             wrapper._heightControls._updateBtnDisabled
           ) {
-            wrapper._heightControls._updateBtnDisabled();
+            setTimeout(() => {
+              wrapper._heightControls._updateBtnDisabled();
+            }, 0);
           }
         });
       }
@@ -973,11 +975,17 @@ function updateModeUI() {
       incBtn.innerHTML = "<i class='fa fa-plus'></i>";
 
       function updateBtnDisabled() {
-        const row = wrapper.querySelector(".layout-row");
-        let colCount = 0;
-        if (row) {
-          colCount = row.querySelectorAll(".column-wrapper .column").length;
-        }
+        // Count columns only in the first .column-wrapper of this row
+        let colWrapper = wrapper.querySelector(".column-wrapper");
+        let colCount = colWrapper
+          ? colWrapper.querySelectorAll(".column").length
+          : 0;
+        console.log(
+          "[updateBtnDisabled] colWrapper:",
+          colWrapper,
+          "colCount:",
+          colCount
+        );
         // Disable if at min, or if decreasing would make height less than col count
         decBtn.disabled =
           wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER ||
@@ -1010,8 +1018,7 @@ function updateModeUI() {
         ) {
           wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
           updateRowHeight();
-          updateBtnDisabled();
-
+          // Do not call updateBtnDisabled here; only after add/remove column
           if (row) {
             row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
               updateAllAddColButtons(colWrapper, wrapper);
@@ -1027,7 +1034,7 @@ function updateModeUI() {
         ) {
           wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
           updateRowHeight();
-          updateBtnDisabled();
+          // Do not call updateBtnDisabled here; only after add/remove column
         }
 
         const row = wrapper.querySelector(".layout-row");
