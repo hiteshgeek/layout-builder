@@ -61,6 +61,44 @@ function updateModeUI() {
     selectorLabel: "selector-label",
   };
 
+  // Shared helper to add a column above or below
+  function handleAddColumn({ col, colWrapper, wrapper, position }) {
+    const maxCols = wrapper._heightMultiplier || 3;
+    if (colWrapper.children.length < maxCols) {
+      const newCol = col.cloneNode(true);
+      if (position === "above") {
+        colWrapper.insertBefore(newCol, col);
+      } else if (position === "below") {
+        if (col.nextSibling) {
+          colWrapper.insertBefore(newCol, col.nextSibling);
+        } else {
+          colWrapper.appendChild(newCol);
+        }
+      }
+      addColumnControls(newCol, colWrapper, wrapper);
+      // Re-attach drag handle if needed
+      const dragHandle = newCol.querySelector(".col-drag-handle");
+      if (dragHandle) {
+        attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+      }
+      updateColDeleteBtns(colWrapper);
+      updateAllAddColButtons(colWrapper, wrapper);
+      // Debug print
+      console.log({
+        "Total Columns: ": colWrapper.children.length,
+        "Max Columns: ": maxCols,
+      });
+      // Disable decBtn if now at max columns
+      if (
+        colWrapper.children.length >= maxCols &&
+        wrapper._heightControls &&
+        wrapper._heightControls._updateBtnDisabled
+      ) {
+        wrapper._heightControls._updateBtnDisabled();
+      }
+    }
+  }
+
   // Reusable: Update add column button visibility for all columns in a column-wrapper
   function updateAllAddColButtons(colWrapper, wrapper) {
     const maxCols = wrapper._heightMultiplier || 3;
@@ -77,26 +115,7 @@ function updateModeUI() {
         );
         addAboveBtn.onclick = function (e) {
           e.stopPropagation();
-          if (colWrapper.children.length < maxCols) {
-            const newCol = col.cloneNode(true);
-            colWrapper.insertBefore(newCol, col);
-            addColumnControls(newCol, colWrapper, wrapper);
-            // Re-attach drag handle if needed
-            const dragHandle = newCol.querySelector(".col-drag-handle");
-            if (dragHandle) {
-              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
-            }
-            updateColDeleteBtns(colWrapper);
-            updateAllAddColButtons(colWrapper, wrapper);
-            // Disable decBtn if now at max columns
-            if (
-              colWrapper.children.length >= maxCols &&
-              wrapper._heightControls &&
-              wrapper._heightControls._updateBtnDisabled
-            ) {
-              wrapper._heightControls._updateBtnDisabled();
-            }
-          }
+          handleAddColumn({ col, colWrapper, wrapper, position: "above" });
         };
         // Add Below
         const addBelowBtn = DomHelpers.createButton(
@@ -106,31 +125,7 @@ function updateModeUI() {
         );
         addBelowBtn.onclick = function (e) {
           e.stopPropagation();
-          if (colWrapper.children.length < maxCols) {
-            const newCol = col.cloneNode(true);
-            if (col.nextSibling) {
-              colWrapper.insertBefore(newCol, col.nextSibling);
-            } else {
-              colWrapper.appendChild(newCol);
-            }
-            addColumnControls(newCol, colWrapper, wrapper);
-            // Re-attach drag handle if needed
-            const dragHandle = newCol.querySelector(".col-drag-handle");
-            if (dragHandle) {
-              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
-            }
-            updateColDeleteBtns(colWrapper);
-            updateAllAddColButtons(colWrapper, wrapper);
-
-            // Disable decBtn if now at max columns
-            if (
-              colWrapper.children.length >= maxCols &&
-              wrapper._heightControls &&
-              wrapper._heightControls._updateBtnDisabled
-            ) {
-              wrapper._heightControls._updateBtnDisabled();
-            }
-          }
+          handleAddColumn({ col, colWrapper, wrapper, position: "below" });
         };
         // Controls containers (define after buttons)
         const topCtrl = document.createElement("div");
@@ -221,32 +216,7 @@ function updateModeUI() {
       );
       addAboveBtn.onclick = function (e) {
         e.stopPropagation();
-        const maxCols = wrapper._heightMultiplier || 3;
-        if (colWrapper.children.length < maxCols) {
-          const newCol = col.cloneNode(true);
-          colWrapper.insertBefore(newCol, col);
-          addColumnControls(newCol, colWrapper, wrapper);
-          // Re-attach drag handle if needed
-          const dragHandle = newCol.querySelector(".col-drag-handle");
-          if (dragHandle) {
-            attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
-          }
-          updateColDeleteBtns();
-          // After adding, check if we hit max and update all
-          if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
-            colWrapper.querySelectorAll(".column").forEach((c) => {
-              const fn = c._addColControls || (() => {});
-              fn(false);
-            });
-          }
-          // Ensure row height controls are updated
-          if (
-            wrapper._heightControls &&
-            wrapper._heightControls._updateBtnDisabled
-          ) {
-            wrapper._heightControls._updateBtnDisabled();
-          }
-        }
+        handleAddColumn({ col, colWrapper, wrapper, position: "above" });
       };
       // Add Below
       const addBelowBtn = DomHelpers.createButton(
@@ -256,36 +226,7 @@ function updateModeUI() {
       );
       addBelowBtn.onclick = function (e) {
         e.stopPropagation();
-        const maxCols = wrapper._heightMultiplier || 3;
-        if (colWrapper.children.length < maxCols) {
-          const newCol = col.cloneNode(true);
-          if (col.nextSibling) {
-            colWrapper.insertBefore(newCol, col.nextSibling);
-          } else {
-            colWrapper.appendChild(newCol);
-          }
-          addColumnControls(newCol, colWrapper, wrapper);
-          // Re-attach drag handle if needed
-          const dragHandle = newCol.querySelector(".col-drag-handle");
-          if (dragHandle) {
-            attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
-          }
-          updateColDeleteBtns();
-          // After adding, check if we hit max and update all
-          if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
-            colWrapper.querySelectorAll(".column").forEach((c) => {
-              const fn = c._addColControls || (() => {});
-              fn(false);
-            });
-          }
-          // Ensure row height controls are updated
-          if (
-            wrapper._heightControls &&
-            wrapper._heightControls._updateBtnDisabled
-          ) {
-            wrapper._heightControls._updateBtnDisabled();
-          }
-        }
+        handleAddColumn({ col, colWrapper, wrapper, position: "below" });
       };
       // Controls containers (define after buttons)
       const topCtrl = document.createElement("div");
