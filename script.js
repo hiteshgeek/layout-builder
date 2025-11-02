@@ -1,3 +1,39 @@
+// --- Mode: "studio" (edit) or "view" (readonly) ---
+let mode = "studio"; // default mode
+
+// --- Mode Toggle Button ---
+const modeToggleBtn = document.createElement("button");
+modeToggleBtn.textContent = "Switch to View Mode";
+modeToggleBtn.className = "mode-toggle-btn btn btn-primary";
+modeToggleBtn.style.margin = "8px";
+modeToggleBtn.onclick = function () {
+  mode = mode === "studio" ? "view" : "studio";
+  modeToggleBtn.textContent =
+    mode === "studio" ? "Switch to View Mode" : "Switch to Studio Mode";
+  updateModeUI();
+};
+document.body.insertBefore(modeToggleBtn, document.body.firstChild);
+
+// --- Update UI based on mode ---
+function updateModeUI() {
+  // Show/hide or enable/disable controls based on mode
+  const show = mode === "studio";
+  // Add Row Above/Below, Delete Row, Change Layout, Drag Handles
+  document
+    .querySelectorAll(
+      ".row-control, .delete-btn, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn"
+    )
+    .forEach((el) => {
+      if (el) el.style.display = show ? "" : "none";
+    });
+  // Optionally disable drag events in view mode
+  document
+    .querySelectorAll(".row-drag-handle, .col-drag-handle")
+    .forEach((el) => {
+      el.draggable = show;
+    });
+}
+
 (function LayoutBuilderLibrary() {
   // --- CSS Class Constants ---
   const CSS = {
@@ -20,8 +56,8 @@
 
   // --- DOM Helpers Module ---
   const DomHelpers = {
-    $: (selector, parent = document) => parent.querySelector(selector),
-    $$: (selector, parent = document) =>
+    queryOne: (selector, parent = document) => parent.querySelector(selector),
+    queryAll: (selector, parent = document) =>
       Array.from(parent.querySelectorAll(selector)),
     /**
      * Create a button with optional icon
@@ -106,8 +142,8 @@
   };
 
   // --- DOM Helpers ---
-  const $ = DomHelpers.$;
-  const $$ = DomHelpers.$$;
+  const queryOne = DomHelpers.queryOne;
+  const queryAll = DomHelpers.queryAll;
   const fetchJSON = AjaxHelpers.fetchJSON;
 
   // --- Reusable DOM Creation Helpers ---
@@ -125,11 +161,11 @@
       col.classList.add("selector-col");
       preview.appendChild(col);
     }
-    const label = document.createElement("div");
-    label.classList.add("selector-label");
-    label.textContent = `${count} column${count > 1 ? "s" : ""}`;
+    // const label = document.createElement("div");
+    // label.classList.add("selector-label");
+    // label.textContent = `${count} column${count > 1 ? "s" : ""}`;
     option.appendChild(preview);
-    option.appendChild(label);
+    // option.appendChild(label);
     option.addEventListener("click", onClick);
     return option;
   };
@@ -217,9 +253,9 @@
 
   // --- Layout Serialization/Deserialization Utilities ---
   const serializeLayout = () =>
-    $$(".row-wrapper").map((wrapper) => {
-      const row = $(".layout-row", wrapper);
-      const cols = row ? $$(".column", row).length : 0;
+    queryAll(".row-wrapper").map((wrapper) => {
+      const row = queryOne(".layout-row", wrapper);
+      const cols = row ? queryAll(".column", row).length : 0;
       return { columns: cols };
     });
 
@@ -258,52 +294,56 @@
   // --- Modularized Row Control Initialization ---
   const initRowControlButtons = (rowWrapper, layoutContainer) => {
     rowWrapper.querySelectorAll(".row-control").forEach((el) => el.remove());
-    const addAbove = DomHelpers.createButton(
-      "Add Row Above",
-      "btn",
-      "fa fa-plus"
-    );
-    addAbove.addEventListener("click", () => {
-      const newRow = createRow();
-      newRow.classList.add("row-animate-in");
-      rowsWrapper.insertBefore(newRow, rowWrapper);
-      setTimeout(() => {
-        newRow.classList.remove("row-animate-in");
-        initRowControls(newRow);
-        updateRowControls();
-      }, 400);
-    });
-    const controlAbove = document.createElement("div");
-    controlAbove.classList.add("row-control", "top");
-    controlAbove.appendChild(addAbove);
-    rowWrapper.appendChild(controlAbove);
-    const addBelow = DomHelpers.createButton(
-      "Add Row Below",
-      "btn",
-      "fa fa-plus"
-    );
-    addBelow.addEventListener("click", () => {
-      const newRow = createRow();
-      newRow.classList.add("row-animate-in");
-      if (rowWrapper.nextSibling) {
-        rowsWrapper.insertBefore(newRow, rowWrapper.nextSibling);
-      } else {
-        rowsWrapper.appendChild(newRow);
-      }
-      setTimeout(() => {
-        newRow.classList.remove("row-animate-in");
-        initRowControls(newRow);
-        updateRowControls();
-      }, 400);
-    });
-    const controlBelow = document.createElement("div");
-    controlBelow.classList.add("row-control", "bottom");
-    controlBelow.appendChild(addBelow);
-    rowWrapper.appendChild(controlBelow);
+    if (mode === "studio") {
+      const addAbove = DomHelpers.createButton(
+        "Add Row Above",
+        "btn",
+        "fa fa-plus"
+      );
+      addAbove.addEventListener("click", () => {
+        const newRow = createRow();
+        newRow.classList.add("row-animate-in");
+        rowsWrapper.insertBefore(newRow, rowWrapper);
+        setTimeout(() => {
+          newRow.classList.remove("row-animate-in");
+          initRowControls(newRow);
+          updateRowControls();
+        }, 400);
+      });
+      const controlAbove = document.createElement("div");
+      controlAbove.classList.add("row-control", "top");
+      controlAbove.appendChild(addAbove);
+      rowWrapper.appendChild(controlAbove);
+      const addBelow = DomHelpers.createButton(
+        "Add Row Below",
+        "btn",
+        "fa fa-plus"
+      );
+      addBelow.addEventListener("click", () => {
+        const newRow = createRow();
+        newRow.classList.add("row-animate-in");
+        if (rowWrapper.nextSibling) {
+          rowsWrapper.insertBefore(newRow, rowWrapper.nextSibling);
+        } else {
+          rowsWrapper.appendChild(newRow);
+        }
+        setTimeout(() => {
+          newRow.classList.remove("row-animate-in");
+          initRowControls(newRow);
+          updateRowControls();
+        }, 400);
+      });
+      const controlBelow = document.createElement("div");
+      controlBelow.classList.add("row-control", "bottom");
+      controlBelow.appendChild(addBelow);
+      rowWrapper.appendChild(controlBelow);
+    }
+    // Call updateModeUI initially and after layout changes
+    setTimeout(updateModeUI, 0);
   };
 
   // --- UI Controls ---
-  const layoutContainer = $("#layoutContainer");
+  const layoutContainer = queryOne("#layoutContainer");
   // Add a wrapper for all rows
   const rowsWrapper = document.createElement("div");
   rowsWrapper.className = "rows-wrapper";
@@ -400,7 +440,7 @@
 
   // --- UI: Patch setColumns/showColumnSelector for autosave ---
   const patchRowAutosave = () => {
-    $$(".row-wrapper").forEach((wrapper) => {
+    queryAll(".row-wrapper").forEach((wrapper) => {
       if (wrapper.setColumns) {
         const origSetColumns = wrapper.setColumns;
         wrapper.setColumns = function (count) {
@@ -577,7 +617,13 @@
     // Always append deleteBtn to the row, before or after column selection
     function showColumnSelector() {
       row.innerHTML = "";
-      row.appendChild(rowDragHandle); // Always append drag handle
+
+      let row_count = rowsWrapper.querySelectorAll(".row-wrapper").length;
+
+      if (row_count > 0) {
+        row.appendChild(rowDragHandle);
+      }
+
       row.appendChild(deleteBtn);
       updateDeleteBtnVisibility();
       let currentColCount = wrapper._currentColCount || 0;
@@ -597,7 +643,7 @@
     function setColumns(count) {
       row.innerHTML = "";
       wrapper._currentColCount = count;
-      row.appendChild(rowDragHandle); // Always append drag handle
+      row.appendChild(rowDragHandle);
       row.appendChild(deleteBtn);
       updateDeleteBtnVisibility();
       const columns = [];
@@ -680,15 +726,17 @@
     document.querySelectorAll(".row-control").forEach((el) => el.remove());
     const rows = rowsWrapper.querySelectorAll(".row-wrapper");
     const showDrag = rows.length > 1;
+
     rows.forEach((rowWrapper) => {
       // Always ensure drag handle is present and toggle its visibility
       const rowDiv = rowWrapper.querySelector(".layout-row");
       const dragHandle = rowDiv && rowDiv.querySelector(".row-drag-handle");
       if (dragHandle) {
-        dragHandle.style.display = showDrag ? "" : "none";
+        dragHandle.classList.toggle("row-drag-handle-hidden", !showDrag);
       }
       initRowControls(rowWrapper);
     });
+
     rows.forEach((rowWrapper) => {
       if (rowWrapper.updateDeleteBtnVisibility)
         rowWrapper.updateDeleteBtnVisibility();
@@ -702,7 +750,10 @@
   setTimeout(() => {
     const rowDiv = initialRow.querySelector(".layout-row");
     const dragHandle = rowDiv && rowDiv.querySelector(".row-drag-handle");
-    if (dragHandle) dragHandle.style.display = "none";
+    if (dragHandle) {
+      dragHandle.classList.add("row-drag-handle-hidden");
+    }
+
     initRowControls(initialRow);
     if (initialRow.updateDeleteBtnVisibility)
       initialRow.updateDeleteBtnVisibility();

@@ -89,6 +89,11 @@
   width: 10px;
   height: 18px;
 }
+
+.row-drag-handle-hidden {
+  display: none !important;
+}
+
 .column {
   position: relative;
 }
@@ -346,7 +351,6 @@ body {
 
 /* Consolidated button styles for add, delete, and change layout */
 .layout-btn,
-.btn,
 .delete-btn,
 .change-layout-btn,
 .row-control .btn {
