@@ -812,6 +812,7 @@ function updateModeUI() {
       topBtnBar.appendChild(heightControls);
       row.appendChild(topBtnBar);
       updateDeleteBtnVisibility();
+
       const columns = [];
       for (let i = 0; i < count; i++) {
         // Create the column
@@ -821,6 +822,9 @@ function updateModeUI() {
         // Create the wrapper
         const colWrapper = document.createElement("div");
         colWrapper.classList.add("column-wrapper", `layout-col-${count}`);
+        colWrapper.style.display = "flex";
+        colWrapper.style.flexDirection = "column";
+        colWrapper.style.height = "100%"; // Ensures full row height
 
         // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
@@ -841,6 +845,7 @@ function updateModeUI() {
         columns.push(colWrapper);
       }
       columns.forEach((colWrapper) => row.appendChild(colWrapper));
+
       // Do NOT add another .change-layout-btn here (already in .row-top-btn-bar)
       updateRowControls();
     }

@@ -253,15 +253,21 @@
   display: none !important;
 }
 
+.column-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .column {
   position: relative;
 }
 /* Drag and drop handle for columns */
 .col-drag-handle {
   position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 12px;
+  transform: translateY(-50%);
   width: var(--handle-size);
   height: 16px;
   display: flex;
@@ -292,9 +298,9 @@
 /* Drag and drop handle for rows */
 .row-drag-handle {
   position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 0;
+  top: 12px;
+  transform: translateX(-50%);
   width: 16px;
   height: var(--handle-size);
   display: flex;
