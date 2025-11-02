@@ -644,11 +644,19 @@ function updateModeUI() {
     const row = document.createElement("div");
     row.classList.add("layout-row");
     // --- Row Height Controls ---
+    function updateRowHeightLabel() {
+      const label = wrapper.querySelector(".row-height-label");
+      if (label) {
+        label.textContent = `Height : ${wrapper._heightMultiplier}`;
+      }
+    }
+
     function updateRowHeight() {
       wrapper.style.setProperty(
         "--row-height-multiplier",
         wrapper._heightMultiplier
       );
+      updateRowHeightLabel();
     }
     function createHeightControls() {
       const heightControls = document.createElement("div");
@@ -690,9 +698,10 @@ function updateModeUI() {
       heightControls.appendChild(decBtn);
       // Add a text label between the buttons
       const heightLabel = document.createElement("span");
-      heightLabel.textContent = "Height";
       heightLabel.className = "row-height-label";
       heightControls.appendChild(heightLabel);
+      // Ensure the label is updated after it is in the DOM
+      setTimeout(updateRowHeightLabel, 0);
       heightControls.appendChild(incBtn);
       return heightControls;
     }
