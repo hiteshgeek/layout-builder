@@ -1,3 +1,9 @@
+.studio-mode .row-wrapper {
+  border: 1px dashed #ccc;
+}
+.view-mode .row-wrapper {
+  border: 1px solid #ccc;
+}
 :root {
   --primary-color: #2196f3;
   --primary-color-light: #e3f2fd;
@@ -46,15 +52,18 @@
   flex-wrap: nowrap;
   position: absolute;
   top: -12px;
-  left: -12px;
+  left: 12px;
   background: white;
   z-index: 10;
-  padding: 0 4px;
+  padding: 0 10px;
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   min-width: max-content;
   height: 20px;
   opacity: 0;
+  transition: background 0.5s ease, color 0.5s ease,
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .row-border-btn,
@@ -141,6 +150,15 @@
   --row-height-max: 6; */
 }
 
+.rows-wrapper {
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+}
+
 .row-wrapper {
   min-height: calc(var(--row-height-base) * var(--row-height-min));
   max-height: calc(var(--row-height-base) * var(--row-height-max));
@@ -159,6 +177,7 @@
   padding: 10px 10px;
   border-radius: 6px;
   font-weight: bold;
+  align-self: flex-start;
 }
 
 .col-plus-btn {
@@ -336,6 +355,8 @@ body {
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .add-row-btn {
@@ -352,12 +373,15 @@ body {
 
 .row-wrapper {
   position: relative;
-  margin: 25px 0;
   border: 1px dashed #ccc;
+  margin: 25px 0;
 }
 
+/* .rows-wrapper .row-wrapper:not(:first-child) {
+  border-top: none;
+} */
+
 .layout-row {
-  /* border: 1px dashed #ccc; */
   background: white;
   display: flex;
   flex-wrap: nowrap;
@@ -444,14 +468,14 @@ body {
 .row-control {
   transform: translateX(-50%);
   position: absolute;
+  background: white;
+  padding: 0 10px;
   left: 50%;
-  background: #007bff;
-  color: white;
   border-radius: 20px;
   font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0 6px;
   cursor: pointer;
   z-index: 5;
   transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
@@ -531,15 +555,24 @@ body {
   color: #fff;
 }
 
-.delete-btn {
-  color: #d32f2f;
-  border-color: #d32f2f;
+.delete-row-control {
   position: absolute;
   top: -12px;
-  right: -9px;
+  right: 12px;
   z-index: 10;
-  line-height: 1;
   opacity: 0;
+  background: white;
+  padding: 0 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 0 6px;
+}
+
+.delete-btn {
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  line-height: 1;
 }
 .delete-btn:hover {
   background: #d32f2f;
@@ -552,12 +585,6 @@ body {
   gap: 0 6px; /* space between icon and text */
   color: #6f42c1;
   border-color: #6f42c1;
-  /* position: absolute; */
-  /* left: -9px;
-  top: -9px;
-  z-index: 9; */
-  /* opacity: 0; */
-  /* white-space: nowrap; */
 }
 .change-layout-btn:hover,
 .change-layout-btn-hover {
@@ -567,7 +594,7 @@ body {
 
 .row-wrapper:hover .row-control.top,
 .row-wrapper:hover .row-control.bottom,
-.row-wrapper:hover .delete-btn,
+.row-wrapper:hover .delete-row-control,
 .row-wrapper:hover .row-top-btn-bar {
   opacity: 1;
   pointer-events: auto;

@@ -21,7 +21,7 @@ function updateModeUI() {
   // Add Row Above/Below, Delete Row, Change Layout, Drag Handles
   document
     .querySelectorAll(
-      ".row-control, .delete-btn, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar"
+      ".row-control, .delete-row-control, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar"
     )
     .forEach((el) => {
       if (el) el.style.display = show ? "" : "none";
@@ -32,6 +32,10 @@ function updateModeUI() {
     .forEach((el) => {
       el.draggable = show;
     });
+
+  // Toggle mode class on body for border style
+  document.body.classList.toggle("studio-mode", mode === "studio");
+  document.body.classList.toggle("view-mode", mode === "view");
 }
 
 (function LayoutBuilderLibrary() {
@@ -43,6 +47,7 @@ function updateModeUI() {
     colDragHandle: "col-drag-handle",
     rowDragHandle: "row-drag-handle",
     rowControl: "row-control",
+    deleteRowControl: "delete-row-control",
     deleteBtn: "delete-btn",
     colPlusBtn: "col-plus-btn",
     layoutLoadSelect: "layout-load-select",
@@ -244,9 +249,7 @@ function updateModeUI() {
         const mouseX = e.clientX;
         const colCenter = rect.left + rect.width / 2;
         if (mouseX > colCenter) {
-          if (row._draggedCol !== col.nextSibling) {
-            row.insertBefore(row._draggedCol, col.nextSibling);
-          }
+          row.insertBefore(row._draggedCol, col.nextSibling);
         } else {
           if (row._draggedCol !== col) {
             row.insertBefore(row._draggedCol, col);
@@ -726,7 +729,27 @@ function updateModeUI() {
         wrapper._heightMultiplier
       );
       row.appendChild(rowDragHandle);
-      row.appendChild(deleteBtn);
+
+      // Create the delete button and handler only once per row
+      const deleteBtn = DomHelpers.createButton(
+        "Delete Row",
+        "delete-btn",
+        "fa fa-trash"
+      );
+      deleteBtn.onclick = function () {
+        if (document.querySelectorAll(".row-wrapper").length > 1) {
+          animateRowRemove(wrapper, () => {
+            wrapper.remove();
+            updateRowControls();
+          });
+        }
+      };
+
+      const deleteRowControl = document.createElement("div");
+      deleteRowControl.classList.add("delete-row-control", "top");
+      deleteRowControl.appendChild(deleteBtn);
+      wrapper.appendChild(deleteRowControl);
+      // row.appendChild(deleteBtn);
       // Remove any existing row-top-btn-bar (hide it while selector is shown)
       const existingBtnBar = row.querySelector(".row-top-btn-bar");
       if (existingBtnBar) existingBtnBar.remove();
@@ -755,7 +778,6 @@ function updateModeUI() {
         wrapper._heightMultiplier
       );
       row.appendChild(rowDragHandle);
-      row.appendChild(deleteBtn);
       // Add row-top-btn-bar only after columns are set
       const topBtnBar = document.createElement("div");
       topBtnBar.className = "row-top-btn-bar";
@@ -810,29 +832,19 @@ function updateModeUI() {
       updateRowControls();
     }
 
-    // Create the delete button and handler only once per row
-    const deleteBtn = DomHelpers.createButton(
-      "Delete Row",
-      "delete-btn",
-      "fa fa-trash"
-    );
-    deleteBtn.onclick = function () {
-      if (document.querySelectorAll(".row-wrapper").length > 1) {
-        animateRowRemove(wrapper, () => {
-          wrapper.remove();
-          updateRowControls();
-        });
-      }
-    };
+    wrapper.updateDeleteBtnVisibility = updateDeleteBtnVisibility;
 
     function updateDeleteBtnVisibility() {
-      if (document.querySelectorAll(".row-wrapper").length === 1) {
-        deleteBtn.classList.add("delete-btn-hidden");
-      } else {
-        deleteBtn.classList.remove("delete-btn-hidden");
+      // Use wrapper instead of row as the parent
+      const deleteRowControl = wrapper.querySelector(".delete-row-control");
+      if (deleteRowControl) {
+        if (document.querySelectorAll(".row-wrapper").length === 1) {
+          deleteRowControl.classList.add("delete-btn-hidden");
+        } else {
+          deleteRowControl.classList.remove("delete-btn-hidden");
+        }
       }
     }
-    wrapper.updateDeleteBtnVisibility = updateDeleteBtnVisibility;
 
     showColumnSelector();
     wrapper.appendChild(row);
