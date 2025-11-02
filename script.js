@@ -93,24 +93,43 @@ function updateModeUI() {
       handle.title =
         type === "row" ? "Drag to reorder row" : "Drag to reorder column";
       handle.setAttribute("draggable", "true");
-      handle.innerHTML =
-        type === "row"
-          ? `<svg width="24" height="36" viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="7" cy="9" r="2" fill="#888"/>
-            <circle cx="17" cy="9" r="2" fill="#888"/>
-            <circle cx="7" cy="18" r="2" fill="#888"/>
-            <circle cx="17" cy="18" r="2" fill="#888"/>
-            <circle cx="7" cy="27" r="2" fill="#888"/>
-            <circle cx="17" cy="27" r="2" fill="#888"/>
-          </svg>`
-          : `<svg width="36" height="24" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto;">
-            <circle cx="7" cy="8" r="2" fill="#888"/>
-            <circle cx="18" cy="8" r="2" fill="#888"/>
-            <circle cx="29" cy="8" r="2" fill="#888"/>
-            <circle cx="7" cy="18" r="2" fill="#888"/>
-            <circle cx="18" cy="18" r="2" fill="#888"/>
-            <circle cx="29" cy="18" r="2" fill="#888"/>
-          </svg>`;
+
+      // Helper to create SVG circles markup
+      function createCircles(circles) {
+        return circles
+          .map(([cx, cy, r]) => `<circle cx="${cx}" cy="${cy}" r="${r}"/>`)
+          .join("");
+      }
+
+      let circle_radius = 2;
+
+      if (type === "row") {
+        // Row drag handle: 3 rows of 2 dots
+        const circles = [
+          [7, 9, circle_radius],
+          [17, 9, circle_radius],
+          [7, 18, circle_radius],
+          [17, 18, circle_radius],
+          [7, 27, circle_radius],
+          [17, 27, circle_radius],
+        ];
+        handle.innerHTML = `<svg class="drag-handle-svg drag-handle-row" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">${createCircles(
+          circles
+        )}</svg>`;
+      } else {
+        // Col drag handle: 2 rows of 3 dots
+        const circles = [
+          [7, 8, circle_radius],
+          [18, 8, circle_radius],
+          [29, 8, circle_radius],
+          [7, 18, circle_radius],
+          [18, 18, circle_radius],
+          [29, 18, circle_radius],
+        ];
+        handle.innerHTML = `<svg class="drag-handle-svg drag-handle-col" viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">${createCircles(
+          circles
+        )}</svg>`;
+      }
       return handle;
     },
   };

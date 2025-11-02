@@ -1,3 +1,18 @@
+/* Drag handle SVG styles */
+.drag-handle-svg {
+  display: block;
+}
+.drag-handle-row {
+  width: 24px;
+  height: 36px;
+}
+.drag-handle-col {
+  width: 36px;
+  height: 24px;
+}
+.drag-handle-svg circle {
+  fill: #888;
+}
 /* Row height label between inc/dec buttons */
 .row-height-label {
   margin: 0 4px;
@@ -112,6 +127,8 @@
   min-height: calc(var(--row-height-base) * var(--row-height-min));
   max-height: calc(var(--row-height-base) * var(--row-height-max));
   height: calc(var(--row-height-base) * var(--row-height-multiplier));
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s,
+    border-color 0.2s;
 }
 
 .row-wrapper .column {
@@ -219,11 +236,11 @@
 /* Drag and drop handle for columns */
 .col-drag-handle {
   position: absolute;
-  top: 0;
+  top: -1px;
   left: 50%;
   transform: translate(-50%, -50%);
   width: var(--handle-size);
-  height: 12px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -252,10 +269,10 @@
 /* Drag and drop handle for rows */
 .row-drag-handle {
   position: absolute;
-  left: -5px;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
-  width: 12px;
+  width: 16px;
   height: var(--handle-size);
   display: flex;
   align-items: center;
