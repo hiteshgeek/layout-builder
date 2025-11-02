@@ -61,6 +61,208 @@ function updateModeUI() {
     selectorLabel: "selector-label",
   };
 
+  // Reusable: Update add column button visibility for all columns in a column-wrapper
+  function updateAllAddColButtons(colWrapper, wrapper) {
+    const maxCols = wrapper._heightMultiplier || 3;
+    const show = colWrapper.children.length < maxCols;
+    colWrapper.querySelectorAll(".column").forEach((col) => {
+      // Remove all existing add controls
+      col.querySelectorAll(".col-control").forEach((ctrl) => ctrl.remove());
+      if (show) {
+        // Add Above
+        const addAboveBtn = DomHelpers.createButton(
+          "Add Column Above",
+          "col-add-above-btn btn",
+          "fa fa-plus"
+        );
+        addAboveBtn.onclick = function (e) {
+          e.stopPropagation();
+          if (colWrapper.children.length < maxCols) {
+            const newCol = col.cloneNode(true);
+            colWrapper.insertBefore(newCol, col);
+            addColumnControls(newCol, colWrapper, wrapper);
+            // Re-attach drag handle if needed
+            const dragHandle = newCol.querySelector(".col-drag-handle");
+            if (dragHandle) {
+              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+            }
+            updateColDeleteBtns(colWrapper);
+            updateAllAddColButtons(colWrapper, wrapper);
+          }
+        };
+        // Add Below
+        const addBelowBtn = DomHelpers.createButton(
+          "Add Column Below",
+          "col-add-below-btn btn",
+          "fa fa-plus"
+        );
+        addBelowBtn.onclick = function (e) {
+          e.stopPropagation();
+          if (colWrapper.children.length < maxCols) {
+            const newCol = col.cloneNode(true);
+            if (col.nextSibling) {
+              colWrapper.insertBefore(newCol, col.nextSibling);
+            } else {
+              colWrapper.appendChild(newCol);
+            }
+            addColumnControls(newCol, colWrapper, wrapper);
+            // Re-attach drag handle if needed
+            const dragHandle = newCol.querySelector(".col-drag-handle");
+            if (dragHandle) {
+              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+            }
+            updateColDeleteBtns(colWrapper);
+            updateAllAddColButtons(colWrapper, wrapper);
+          }
+        };
+        // Controls containers (define after buttons)
+        const topCtrl = document.createElement("div");
+        topCtrl.className = "col-control col-control-top";
+        topCtrl.appendChild(addAboveBtn);
+        const botCtrl = document.createElement("div");
+        botCtrl.className = "col-control col-control-bottom";
+        botCtrl.appendChild(addBelowBtn);
+        col.appendChild(topCtrl);
+        col.appendChild(botCtrl);
+      }
+    });
+  }
+
+  // Make updateColDeleteBtns available at the top level inside the IIFE
+  function updateColDeleteBtns(colWrapper) {
+    if (!colWrapper) return;
+    const cols = colWrapper.querySelectorAll(":scope > .column");
+    cols.forEach((c) => {
+      const delBtn = c.querySelector(".col-delete-btn");
+      if (delBtn) {
+        delBtn.style.display = cols.length <= 1 ? "none" : "";
+      }
+    });
+  }
+
+  function addColumnControls(col, colWrapper, wrapper) {
+    // Delete Column Button (top right)
+    // Always remove any existing delete-col-control to avoid duplicates
+    let oldDelCtrl = col.querySelector(".delete-col-control");
+    if (oldDelCtrl) oldDelCtrl.remove();
+    // Create and attach new delete control
+    let delCtrl = document.createElement("div");
+    delCtrl.className = "delete-col-control";
+    const delBtn = DomHelpers.createButton(
+      "Delete Column",
+      "col-delete-btn delete-btn btn",
+      "fa fa-trash"
+    );
+    delBtn.title = "Delete Column";
+    delBtn.onclick = function (e) {
+      e.stopPropagation();
+      if (colWrapper.querySelectorAll(":scope > .column").length > 1) {
+        // Add fade-out animation before removing
+        col.classList.add("col-animate-out");
+        col.addEventListener("animationend", function handler() {
+          col.removeEventListener("animationend", handler);
+          col.remove();
+          updateColDeleteBtns(colWrapper);
+          // Restore add column buttons if below max
+          if (colWrapper.children.length < (wrapper._heightMultiplier || 3)) {
+            updateAllAddColButtons(colWrapper, wrapper);
+          }
+        });
+      }
+    };
+    delCtrl.appendChild(delBtn);
+    col.appendChild(delCtrl);
+    // Helper to add or remove add column buttons
+    function setAddColButtonsVisible(visible) {
+      // Remove all existing add controls
+      col.querySelectorAll(".col-control").forEach((ctrl) => ctrl.remove());
+      if (!visible) return;
+      // Add Above
+      const addAboveBtn = DomHelpers.createButton(
+        "Add Column Above",
+        "col-add-above-btn btn",
+        "fa fa-plus"
+      );
+      addAboveBtn.onclick = function (e) {
+        e.stopPropagation();
+        const maxCols = wrapper._heightMultiplier || 3;
+        if (colWrapper.children.length < maxCols) {
+          const newCol = col.cloneNode(true);
+          colWrapper.insertBefore(newCol, col);
+          addColumnControls(newCol, colWrapper, wrapper);
+          // Re-attach drag handle if needed
+          const dragHandle = newCol.querySelector(".col-drag-handle");
+          if (dragHandle) {
+            attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+          }
+          updateColDeleteBtns();
+          // After adding, check if we hit max and update all
+          if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
+            colWrapper.querySelectorAll(".column").forEach((c) => {
+              const fn = c._addColControls || (() => {});
+              fn(false);
+            });
+          }
+        }
+      };
+      // Add Below
+      const addBelowBtn = DomHelpers.createButton(
+        "Add Column Below",
+        "col-add-below-btn btn",
+        "fa fa-plus"
+      );
+      addBelowBtn.onclick = function (e) {
+        e.stopPropagation();
+        const maxCols = wrapper._heightMultiplier || 3;
+        if (colWrapper.children.length < maxCols) {
+          const newCol = col.cloneNode(true);
+          if (col.nextSibling) {
+            colWrapper.insertBefore(newCol, col.nextSibling);
+          } else {
+            colWrapper.appendChild(newCol);
+          }
+          addColumnControls(newCol, colWrapper, wrapper);
+          // Re-attach drag handle if needed
+          const dragHandle = newCol.querySelector(".col-drag-handle");
+          if (dragHandle) {
+            attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+          }
+          updateColDeleteBtns();
+          // After adding, check if we hit max and update all
+          if (colWrapper.children.length >= (wrapper._heightMultiplier || 3)) {
+            colWrapper.querySelectorAll(".column").forEach((c) => {
+              const fn = c._addColControls || (() => {});
+              fn(false);
+            });
+          }
+        }
+      };
+      // Controls containers (define after buttons)
+      const topCtrl = document.createElement("div");
+      topCtrl.className = "col-control col-control-top";
+      topCtrl.appendChild(addAboveBtn);
+      const botCtrl = document.createElement("div");
+      botCtrl.className = "col-control col-control-bottom";
+      botCtrl.appendChild(addBelowBtn);
+      col.appendChild(topCtrl);
+      col.appendChild(botCtrl);
+    }
+
+    // Show or hide add controls based on current count
+    const maxCols = wrapper._heightMultiplier || 3;
+    setAddColButtonsVisible(colWrapper.children.length < maxCols);
+    // After delete, if below max, restore add controls to all columns
+    colWrapper._updateColDeleteBtns = function () {
+      updateColDeleteBtns(colWrapper);
+      if (colWrapper.children.length < (wrapper._heightMultiplier || 3)) {
+        colWrapper.querySelectorAll(".column").forEach((c) => {
+          const fn = c._addColControls || (() => {});
+          fn(true);
+        });
+      }
+    };
+  }
+
   // --- DOM Helpers Module ---
   const DomHelpers = {
     queryOne: (selector, parent = document) => parent.querySelector(selector),
@@ -694,6 +896,13 @@ function updateModeUI() {
           wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
           updateRowHeight();
           updateBtnDisabled();
+
+          const row = wrapper.querySelector(".layout-row");
+          if (row) {
+            row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
+              updateAllAddColButtons(colWrapper, wrapper);
+            });
+          }
         }
       };
       incBtn.onclick = function (e) {
@@ -705,6 +914,13 @@ function updateModeUI() {
           wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
           updateRowHeight();
           updateBtnDisabled();
+        }
+
+        const row = wrapper.querySelector(".layout-row");
+        if (row) {
+          row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
+            updateAllAddColButtons(colWrapper, wrapper);
+          });
         }
       };
 
@@ -814,153 +1030,6 @@ function updateModeUI() {
       updateDeleteBtnVisibility();
 
       const columns = [];
-      function addColumnControls(col, colWrapper, wrapper) {
-        function updateColDeleteBtns() {
-          const cols = colWrapper.querySelectorAll(":scope > .column");
-          cols.forEach((c) => {
-            const delBtn = c.querySelector(".col-delete-btn");
-            if (delBtn) {
-              delBtn.style.display = cols.length <= 1 ? "none" : "";
-            }
-          });
-        }
-
-        // Delete Column Button (top right)
-        // Always remove any existing delete-col-control to avoid duplicates
-        let oldDelCtrl = col.querySelector(".delete-col-control");
-        if (oldDelCtrl) oldDelCtrl.remove();
-        // Create and attach new delete control
-        let delCtrl = document.createElement("div");
-        delCtrl.className = "delete-col-control";
-        const delBtn = DomHelpers.createButton(
-          "Delete Column",
-          "col-delete-btn delete-btn btn",
-          "fa fa-trash"
-        );
-        delBtn.title = "Delete Column";
-        delBtn.onclick = function (e) {
-          e.stopPropagation();
-          if (colWrapper.querySelectorAll(":scope > .column").length > 1) {
-            // Add fade-out animation before removing
-            col.classList.add("col-animate-out");
-            col.addEventListener("animationend", function handler() {
-              col.removeEventListener("animationend", handler);
-              col.remove();
-              updateColDeleteBtns();
-            });
-          }
-        };
-        delCtrl.appendChild(delBtn);
-        col.appendChild(delCtrl);
-        // Helper to add or remove add column buttons
-        function setAddColButtonsVisible(visible) {
-          // Remove all existing add controls
-          col.querySelectorAll(".col-control").forEach((ctrl) => ctrl.remove());
-          if (!visible) return;
-          // Add Above
-          const addAboveBtn = DomHelpers.createButton(
-            "Add Column Above",
-            "col-add-above-btn btn",
-            "fa fa-plus"
-          );
-          addAboveBtn.onclick = function (e) {
-            e.stopPropagation();
-            const maxCols = wrapper._heightMultiplier || 3;
-            if (colWrapper.children.length < maxCols) {
-              const newCol = col.cloneNode(true);
-              colWrapper.insertBefore(newCol, col);
-              addColumnControls(newCol, colWrapper, wrapper);
-              // Re-attach drag handle if needed
-              const dragHandle = newCol.querySelector(".col-drag-handle");
-              if (dragHandle) {
-                attachColDragEvents(
-                  dragHandle,
-                  newCol,
-                  col.parentNode,
-                  wrapper
-                );
-              }
-              updateColDeleteBtns();
-              // After adding, check if we hit max and update all
-              if (
-                colWrapper.children.length >= (wrapper._heightMultiplier || 3)
-              ) {
-                colWrapper.querySelectorAll(".column").forEach((c) => {
-                  const fn = c._addColControls || (() => {});
-                  fn(false);
-                });
-              }
-            }
-          };
-          // Add Below
-          const addBelowBtn = DomHelpers.createButton(
-            "Add Column Below",
-            "col-add-below-btn btn",
-            "fa fa-plus"
-          );
-          addBelowBtn.onclick = function (e) {
-            e.stopPropagation();
-            const maxCols = wrapper._heightMultiplier || 3;
-            if (colWrapper.children.length < maxCols) {
-              const newCol = col.cloneNode(true);
-              if (col.nextSibling) {
-                colWrapper.insertBefore(newCol, col.nextSibling);
-              } else {
-                colWrapper.appendChild(newCol);
-              }
-              addColumnControls(newCol, colWrapper, wrapper);
-              // Re-attach drag handle if needed
-              const dragHandle = newCol.querySelector(".col-drag-handle");
-              if (dragHandle) {
-                attachColDragEvents(
-                  dragHandle,
-                  newCol,
-                  col.parentNode,
-                  wrapper
-                );
-              }
-              updateColDeleteBtns();
-              // After adding, check if we hit max and update all
-              if (
-                colWrapper.children.length >= (wrapper._heightMultiplier || 3)
-              ) {
-                colWrapper.querySelectorAll(".column").forEach((c) => {
-                  const fn = c._addColControls || (() => {});
-                  fn(false);
-                });
-              }
-            }
-          };
-          // Controls containers (define after buttons)
-          const topCtrl = document.createElement("div");
-          topCtrl.className = "col-control col-control-top";
-          topCtrl.appendChild(addAboveBtn);
-          const botCtrl = document.createElement("div");
-          botCtrl.className = "col-control col-control-bottom";
-          botCtrl.appendChild(addBelowBtn);
-          col.appendChild(topCtrl);
-          col.appendChild(botCtrl);
-        }
-
-        // Attach helper to column for later use
-        col._addColControls = setAddColButtonsVisible;
-
-        // Show or hide add controls based on current count
-        const maxCols = wrapper._heightMultiplier || 3;
-        setAddColButtonsVisible(colWrapper.children.length < maxCols);
-        updateColDeleteBtns = (function (origFn) {
-          return function () {
-            origFn();
-            // After delete, if below max, restore add controls to all columns
-            if (colWrapper.children.length < (wrapper._heightMultiplier || 3)) {
-              colWrapper.querySelectorAll(".column").forEach((c) => {
-                const fn = c._addColControls || (() => {});
-                fn(true);
-              });
-            }
-          };
-        })(updateColDeleteBtns);
-      }
       for (let i = 0; i < count; i++) {
         // Create the column
         const col = document.createElement("div");
