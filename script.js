@@ -21,7 +21,7 @@ function updateModeUI() {
   // Add Row Above/Below, Delete Row, Change Layout, Drag Handles
   document
     .querySelectorAll(
-      ".row-control, .delete-row-control, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar"
+      ".row-control, .delete-row-control, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar, .col-add-above-btn, .col-add-below-btn, .col-delete-btn, .delete-col-control, .col-control"
     )
     .forEach((el) => {
       if (el) el.style.display = show ? "" : "none";
