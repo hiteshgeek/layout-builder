@@ -1,3 +1,64 @@
+.row-top-btn-bar {
+  position: absolute;
+  top: -9px;
+  left: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.row-border-btn,
+.change-layout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: none;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid #6f42c1;
+  background: white;
+  transition: background 0.5s ease, color 0.5s ease,
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.row-border-btn button {
+  border: none;
+  background: none;
+  color: #6f42c1;
+  font-size: 14px;
+  padding: 0 4px;
+  margin: 0 2px;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+}
+.row-border-btn button:hover {
+  background: #6f42c1;
+  color: #fff;
+}
+:root {
+  --row-height-base: 100px;
+  --row-height-multiplier: 3;
+  --row-height-min: 1;
+  --row-height-max: 6;
+}
+
+.row-wrapper {
+  min-height: calc(var(--row-height-base) * var(--row-height-min));
+  max-height: calc(var(--row-height-base) * var(--row-height-max));
+  height: calc(var(--row-height-base) * var(--row-height-multiplier));
+}
+
+.row-wrapper .column {
+  height: 100%;
+}
 :root {
   --primary-color: #2196f3;
   --primary-color-light: #e3f2fd;
@@ -216,17 +277,19 @@ body {
 .row-wrapper {
   position: relative;
   margin: 25px 0;
+  border: 1px dashed #ccc;
 }
 
 .layout-row {
-  border: 1px dashed #ccc;
-  padding: 15px;
+  /* border: 1px dashed #ccc; */
   background: white;
   display: flex;
   flex-wrap: nowrap;
   gap: var(--column-gap);
   justify-content: space-between;
   position: relative;
+  height: 100%;
+  padding: 20px;
 }
 
 .column {
@@ -234,12 +297,14 @@ body {
   border-radius: 10px;
   background: #eee;
   text-align: center;
-  padding: 40px 0;
   font-size: 14px;
-  flex-grow: 1;
-  flex-basis: 0;
+  flex: 1 1 0;
   cursor: pointer;
   transition: box-shadow 0.2s linear;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Column Selector */

@@ -361,9 +361,7 @@ function updateModeUI() {
 
   // --- Utility: Update layout name label ---
   const updateLayoutNameLabel = () => {
-    layoutNameLabel.textContent = state.currentLayoutName
-      ? `Current layout: ${state.currentLayoutName}`
-      : "";
+    layoutNameLabel.textContent = state.currentLayoutName;
   };
 
   // --- Utility: Get current layout as JSON ---
@@ -505,6 +503,7 @@ function updateModeUI() {
         if (newRow.updateDeleteBtnVisibility)
           newRow.updateDeleteBtnVisibility();
       }, 100);
+      wrapper.appendChild(inner);
       state.currentLayoutName = null;
       state.hasSavedOnce = false;
       updateLayoutNameLabel();
@@ -529,6 +528,12 @@ function updateModeUI() {
   // --- Column options ---
   const columnOptions = [1, 2, 3, 4];
 
+  // --- Row Height Constants ---
+  const ROW_HEIGHT_BASE = 100; // px
+  const ROW_HEIGHT_DEFAULT_MULTIPLIER = 3;
+  const ROW_HEIGHT_MIN_MULTIPLIER = 1;
+  const ROW_HEIGHT_MAX_MULTIPLIER = 6;
+
   // --- Helper to animate row removal ---
   function animateRowRemove(rowElem, callback) {
     rowElem.classList.add("row-animate-out");
@@ -547,6 +552,12 @@ function updateModeUI() {
   function createRow() {
     const wrapper = document.createElement("div");
     wrapper.classList.add("row-wrapper");
+    // Row height state
+    wrapper._heightMultiplier = ROW_HEIGHT_DEFAULT_MULTIPLIER;
+    wrapper.style.setProperty(
+      "--row-height-multiplier",
+      wrapper._heightMultiplier
+    );
     // --- Not-allowed feedback for column drag over other rows ---
     wrapper.addEventListener("dragenter", (e) => {
       if (
@@ -613,18 +624,80 @@ function updateModeUI() {
 
     const row = document.createElement("div");
     row.classList.add("layout-row");
-
-    // Always append deleteBtn to the row, before or after column selection
+    // --- Row Height Controls ---
+    function updateRowHeight() {
+      wrapper.style.setProperty(
+        "--row-height-multiplier",
+        wrapper._heightMultiplier
+      );
+    }
+    function createHeightControls() {
+      const heightControls = document.createElement("div");
+      heightControls.className = "row-height-controls";
+      const decBtn = document.createElement("button");
+      decBtn.className = "row-height-dec btn btn-xs btn-default";
+      decBtn.innerHTML = "<i class='fa fa-minus'></i>";
+      decBtn.onclick = function (e) {
+        e.stopPropagation();
+        if (wrapper._heightMultiplier > ROW_HEIGHT_MIN_MULTIPLIER) {
+          wrapper._heightMultiplier--;
+          updateRowHeight();
+        }
+      };
+      const incBtn = document.createElement("button");
+      incBtn.className = "row-height-inc btn btn-xs btn-default";
+      incBtn.innerHTML = "<i class='fa fa-plus'></i>";
+      incBtn.onclick = function (e) {
+        e.stopPropagation();
+        if (wrapper._heightMultiplier < ROW_HEIGHT_MAX_MULTIPLIER) {
+          wrapper._heightMultiplier++;
+          updateRowHeight();
+        }
+      };
+      heightControls.appendChild(decBtn);
+      heightControls.appendChild(incBtn);
+      return heightControls;
+    }
+    // --- Row Creation Logic ---
     function showColumnSelector() {
       row.innerHTML = "";
-
-      let row_count = rowsWrapper.querySelectorAll(".row-wrapper").length;
-
-      if (row_count > 0) {
-        row.appendChild(rowDragHandle);
-      }
-
+      // Set row height multiplier to 1 when showing column selector
+      wrapper._heightMultiplier = ROW_HEIGHT_MIN_MULTIPLIER;
+      wrapper.style.setProperty(
+        "--row-height-multiplier",
+        wrapper._heightMultiplier
+      );
+      row.appendChild(rowDragHandle);
       row.appendChild(deleteBtn);
+      // Create a container for top border buttons
+      const topBtnBar = document.createElement("div");
+      topBtnBar.className = "row-top-btn-bar";
+      // Change layout button
+      const changeBtnSC = document.createElement("button");
+      changeBtnSC.className = "change-layout-btn";
+      const changeIconSC = document.createElement("i");
+      changeIconSC.className = "fa fa-random";
+      changeIconSC.setAttribute("aria-hidden", "true");
+      changeBtnSC.appendChild(changeIconSC);
+      const changeTextSC = document.createElement("span");
+      changeTextSC.textContent = "Change layout";
+      changeBtnSC.appendChild(changeTextSC);
+      changeBtnSC.addEventListener("mouseenter", () => {
+        changeBtnSC.classList.add("change-layout-btn-hover");
+      });
+      changeBtnSC.addEventListener("mouseleave", () => {
+        changeBtnSC.classList.remove("change-layout-btn-hover");
+      });
+      changeBtnSC.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showColumnSelector();
+      });
+      topBtnBar.appendChild(changeBtnSC);
+      // Row height controls
+      const heightControls = createHeightControls();
+      heightControls.classList.add("row-border-btn");
+      topBtnBar.appendChild(heightControls);
+      row.appendChild(topBtnBar);
       updateDeleteBtnVisibility();
       let currentColCount = wrapper._currentColCount || 0;
       const selector = document.createElement("div");
@@ -643,8 +716,16 @@ function updateModeUI() {
     function setColumns(count) {
       row.innerHTML = "";
       wrapper._currentColCount = count;
+      // Set row height multiplier to default when columns are chosen
+      wrapper._heightMultiplier = ROW_HEIGHT_DEFAULT_MULTIPLIER;
+      wrapper.style.setProperty(
+        "--row-height-multiplier",
+        wrapper._heightMultiplier
+      );
       row.appendChild(rowDragHandle);
       row.appendChild(deleteBtn);
+      // Find the existing change layout button and add height controls next to it
+      // (change layout button is added below after columns)
       updateDeleteBtnVisibility();
       const columns = [];
       for (let i = 0; i < count; i++) {
@@ -664,6 +745,7 @@ function updateModeUI() {
         columns.push(col);
       }
       columns.forEach((col) => row.appendChild(col));
+      // Restore original change layout button
       const changeBtn = document.createElement("button");
       changeBtn.className = "change-layout-btn";
       const changeIcon = document.createElement("i");
@@ -683,7 +765,14 @@ function updateModeUI() {
         e.stopPropagation();
         showColumnSelector();
       });
-      row.appendChild(changeBtn);
+      // Add row height controls next to change layout button
+      const heightControls = createHeightControls();
+      heightControls.classList.add("row-border-btn");
+      const btnBar = document.createElement("div");
+      btnBar.className = "row-top-btn-bar";
+      btnBar.appendChild(changeBtn);
+      btnBar.appendChild(heightControls);
+      row.appendChild(btnBar);
       updateRowControls();
     }
 
