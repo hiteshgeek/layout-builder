@@ -5,7 +5,7 @@ let mode = "studio"; // default mode
 const modeToggleBtn = document.createElement("button");
 modeToggleBtn.textContent = "Switch to View Mode";
 modeToggleBtn.className = "mode-toggle-btn btn btn-primary";
-modeToggleBtn.style.margin = "8px";
+modeToggleBtn.classList.add("mode-toggle-btn-margin");
 modeToggleBtn.onclick = function () {
   mode = mode === "studio" ? "view" : "studio";
   modeToggleBtn.textContent =
@@ -24,7 +24,7 @@ function updateModeUI() {
       ".row-control, .delete-row-control, .save-layout-btn, .layout-load-select, .row-drag-handle, .col-drag-handle, .split-vert-btn, .col-plus-btn, .change-layout-btn, .row-top-btn-bar, .col-add-above-btn, .col-add-below-btn, .col-delete-btn, .delete-col-control, .col-control"
     )
     .forEach((el) => {
-      if (el) el.style.display = show ? "" : "none";
+      if (el) el.classList.toggle("hidden-by-mode", !show);
     });
   // Optionally disable drag events in view mode
   document
@@ -641,6 +641,13 @@ function updateModeUI() {
             (cwObj.columns || []).forEach(() => {
               const col = document.createElement("div");
               col.className = "column";
+              // Add plus button (same as setColumns)
+              const plusBtn = DomHelpers.createButton("", "col-plus-btn");
+              plusBtn.innerHTML = "<span>+</span>";
+              plusBtn.type = "button";
+              plusBtn.tabIndex = -1;
+              plusBtn.style.pointerEvents = "none";
+              col.appendChild(plusBtn);
               colWrapper.appendChild(col);
               addColumnControls(col, colWrapper, wrapper);
               const dragHandle = col.querySelector(".col-drag-handle");
@@ -788,12 +795,12 @@ function updateModeUI() {
   const layoutSelect = document.createElement("select");
   layoutSelect.className = "layout-load-select";
   layoutSelect.innerHTML = '<option value="">Select layout...</option>';
-  layoutSelect.style.margin = "16px 0 8px 0";
+  layoutSelect.classList.add("layout-select-margin");
   const layoutNameLabel = document.createElement("span");
   layoutNameLabel.className = "layout-name-label";
-  layoutNameLabel.style.marginLeft = "12px";
+  layoutNameLabel.classList.add("layout-name-label-margin");
   const saveBtn = DomHelpers.createButton("Save Layout", "save-layout-btn");
-  saveBtn.style.margin = "0 8px 8px 0";
+  saveBtn.classList.add("save-btn-margin");
 
   // --- Utility: Update layout name label ---
   const updateLayoutNameLabel = () => {
@@ -843,7 +850,7 @@ function updateModeUI() {
 
   // --- UI: Hide save button ---
   const hideSaveBtn = () => {
-    saveBtn.style.display = "none";
+    saveBtn.classList.add("hidden-by-mode");
   };
 
   // --- UI: Add '+ New Layout' option ---
@@ -942,7 +949,7 @@ function updateModeUI() {
       state.currentLayoutName = null;
       state.hasSavedOnce = false;
       updateLayoutNameLabel();
-      saveBtn.style.display = "inline-block";
+      saveBtn.classList.remove("hidden-by-mode");
       this.value = "";
     }
   });

@@ -1,3 +1,20 @@
+/* Moved from script.js */
+.mode-toggle-btn-margin {
+  margin: 8px;
+}
+.layout-select-margin {
+  margin: 16px 0 8px 0;
+}
+.layout-name-label-margin {
+  margin-left: 12px;
+}
+.save-btn-margin {
+  margin: 0 8px 8px 0;
+}
+.hidden-by-mode {
+  display: none !important;
+}
+/* End moved styles */
 @keyframes colFadeOut {
   from {
     opacity: 1;
