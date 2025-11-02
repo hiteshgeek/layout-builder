@@ -532,7 +532,8 @@ body {
 /* Only show add-below on hover, add-above always visible */
 
 .row-control.top,
-.row-control.bottom {
+.row-control.bottom,
+.col-control {
   opacity: 0;
 }
 .row-wrapper:hover .row-control.top,
@@ -541,8 +542,14 @@ body {
 }
 
 .row-control:hover {
-  opacity: 1 !important;
   transform: translate(-50%, 0);
+}
+
+.row-top-btn-bar:hover,
+.row-control:hover,
+.col-control:hover,
+.delete-row-control:hover {
+  opacity: 1 !important;
 }
 
 .row-control.top {
@@ -555,6 +562,10 @@ body {
 
 .column:hover {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.column:hover .col-control {
+  opacity: 0.4;
 }
 
 .column:hover .col-drag-handle {
@@ -598,6 +609,8 @@ body {
 .col-control .btn {
   color: #007bff;
   border-color: #007bff;
+  outline: none !important;
+  outline-offset: unset !important;
 }
 .row-control .btn:hover,
 .col-control .btn:hover {
@@ -646,7 +659,7 @@ body {
 .row-wrapper:hover .row-control.bottom,
 .row-wrapper:hover .delete-row-control,
 .row-wrapper:hover .row-top-btn-bar {
-  opacity: 1;
+  opacity: 0.4;
   pointer-events: auto;
 }
 

@@ -831,7 +831,6 @@ function updateModeUI() {
           "col-add-above-btn btn",
           "fa fa-plus"
         );
-        addAboveBtn.title = "Add column above";
         addAboveBtn.onclick = function (e) {
           e.stopPropagation();
           const maxCols = wrapper._heightMultiplier || 3;
@@ -848,7 +847,6 @@ function updateModeUI() {
           "col-add-below-btn btn",
           "fa fa-plus"
         );
-        addBelowBtn.title = "Add column below";
         addBelowBtn.onclick = function (e) {
           e.stopPropagation();
           const maxCols = wrapper._heightMultiplier || 3;
@@ -884,7 +882,7 @@ function updateModeUI() {
         // Create the wrapper
         const colWrapper = document.createElement("div");
         colWrapper.classList.add("column-wrapper", `layout-col-${count}`);
-  // Style moved to CSS
+        // Style moved to CSS
 
         // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
