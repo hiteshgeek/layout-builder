@@ -837,6 +837,12 @@ function updateModeUI() {
           if (colWrapper.children.length < maxCols) {
             const newCol = col.cloneNode(true);
             colWrapper.insertBefore(newCol, col);
+            addColumnControls(newCol, colWrapper, wrapper);
+            // Re-attach drag handle if needed
+            const dragHandle = newCol.querySelector(".col-drag-handle");
+            if (dragHandle) {
+              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
+            }
             updateColDeleteBtns();
           }
         };
@@ -856,6 +862,12 @@ function updateModeUI() {
               colWrapper.insertBefore(newCol, col.nextSibling);
             } else {
               colWrapper.appendChild(newCol);
+            }
+            addColumnControls(newCol, colWrapper, wrapper);
+            // Re-attach drag handle if needed
+            const dragHandle = newCol.querySelector(".col-drag-handle");
+            if (dragHandle) {
+              attachColDragEvents(dragHandle, newCol, col.parentNode, wrapper);
             }
             updateColDeleteBtns();
           }
