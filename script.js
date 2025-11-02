@@ -41,6 +41,107 @@ function updateModeUI() {
 }
 
 (function LayoutBuilderLibrary() {
+  // --- Row Height Controls Helpers (top-level for reuse) ---
+  function updateRowHeightLabel(wrapper) {
+    const label = wrapper.querySelector(".row-height-label");
+    if (label) {
+      let value = wrapper._heightMultiplier;
+      if (ROW_HEIGHT_STEPPER % 1 !== 0) {
+        value = value.toFixed(1);
+      }
+      label.textContent = `Height : ${value}`;
+    }
+  }
+
+  function updateRowHeight(wrapper) {
+    wrapper.style.setProperty(
+      "--row-height-multiplier",
+      wrapper._heightMultiplier
+    );
+    updateRowHeightLabel(wrapper);
+  }
+
+  function createHeightControls(wrapper) {
+    const heightControls = document.createElement("div");
+    heightControls.className = "row-height-controls";
+    const decBtn = document.createElement("button");
+    decBtn.className = "row-height-dec btn btn-xs btn-default";
+    decBtn.innerHTML = "<i class='fa fa-minus'></i>";
+    const incBtn = document.createElement("button");
+    incBtn.className = "row-height-inc btn btn-xs btn-default";
+    incBtn.innerHTML = "<i class='fa fa-plus'></i>";
+
+    function updateBtnDisabled() {
+      let wrappers = wrapper.querySelectorAll(".column-wrapper");
+      let maxColCount = 0;
+      wrappers.forEach((cw) => {
+        const count = cw.querySelectorAll(".column").length;
+        if (count > maxColCount) maxColCount = count;
+      });
+      decBtn.disabled =
+        wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER ||
+        wrapper._heightMultiplier - ROW_HEIGHT_STEPPER < maxColCount;
+      incBtn.disabled = wrapper._heightMultiplier >= ROW_HEIGHT_MAX_MULTIPLIER;
+    }
+
+    decBtn.onclick = function (e) {
+      e.stopPropagation();
+      if (decBtn.disabled) return;
+      const row = wrapper.querySelector(".layout-row");
+      let atMaxCols = false;
+      if (row) {
+        const columnWrappers = row.querySelectorAll(".column-wrapper");
+        let maxColumns = 0;
+        columnWrappers.forEach((cw) => {
+          const colCount = cw.querySelectorAll(".column").length;
+          if (colCount > maxColumns) maxColumns = colCount;
+        });
+        atMaxCols = maxColumns >= wrapper._heightMultiplier;
+      }
+      if (
+        wrapper._heightMultiplier - ROW_HEIGHT_STEPPER >=
+          ROW_HEIGHT_MIN_MULTIPLIER &&
+        !atMaxCols
+      ) {
+        wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
+        updateRowHeight(wrapper);
+        if (typeof updateBtnDisabled === "function") updateBtnDisabled();
+        if (row) {
+          row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
+            updateAllAddColButtons(colWrapper, wrapper);
+          });
+        }
+      }
+    };
+    incBtn.onclick = function (e) {
+      e.stopPropagation();
+      if (
+        wrapper._heightMultiplier + ROW_HEIGHT_STEPPER <=
+        ROW_HEIGHT_MAX_MULTIPLIER
+      ) {
+        wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
+        updateRowHeight(wrapper);
+        if (typeof updateBtnDisabled === "function") updateBtnDisabled();
+      }
+      const row = wrapper.querySelector(".layout-row");
+      if (row) {
+        row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
+          updateAllAddColButtons(colWrapper, wrapper);
+        });
+      }
+    };
+
+    setTimeout(updateBtnDisabled, 0);
+
+    heightControls.appendChild(decBtn);
+    const heightLabel = document.createElement("span");
+    heightLabel.className = "row-height-label";
+    heightControls.appendChild(heightLabel);
+    setTimeout(() => updateRowHeightLabel(wrapper), 0);
+    heightControls.appendChild(incBtn);
+    heightControls._updateBtnDisabled = updateBtnDisabled;
+    return heightControls;
+  }
   // --- CSS Class Constants ---
   const CSS = {
     rowWrapper: "row-wrapper",
@@ -469,13 +570,37 @@ function updateModeUI() {
   };
 
   // --- Layout Serialization/Deserialization Utilities ---
+  // Enhanced: Save all column-wrappers and columns per row
   const serializeLayout = () =>
     queryAll(".row-wrapper").map((wrapper) => {
       const row = queryOne(".layout-row", wrapper);
-      const cols = row ? queryAll(".column", row).length : 0;
-      return { columns: cols };
+      if (!row)
+        return {
+          columnWrappers: [],
+          heightMultiplier: wrapper._heightMultiplier || 1,
+        };
+      const columnWrappers = queryAll(".column-wrapper", row).map((cw) => {
+        // Extract layoutCol from class (layout-col-X)
+        let layoutCol = 0;
+        cw.classList.forEach((cls) => {
+          const m = cls.match(/^layout-col-(\d+)$/);
+          if (m) layoutCol = parseInt(m[1], 10);
+        });
+        return {
+          layoutCol,
+          columns: queryAll(".column", cw).map((col) => {
+            // You can add more column properties here if needed
+            return {};
+          }),
+        };
+      });
+      return {
+        columnWrappers,
+        heightMultiplier: wrapper._heightMultiplier || 3,
+      };
     });
 
+  // Enhanced: Restore all column-wrappers and columns per row
   const deserializeLayout = (layoutArr) => {
     document.querySelectorAll(".row-wrapper").forEach((w) => w.remove());
     layoutArr.forEach((rowObj) => {
@@ -483,8 +608,102 @@ function updateModeUI() {
       rowsWrapper.appendChild(wrapper);
       setTimeout(() => {
         initRowControls(wrapper);
-        if (rowObj.columns > 0) {
-          let row = wrapper.querySelector(".layout-row");
+        let row = wrapper.querySelector(".layout-row");
+        if (rowObj.columnWrappers && Array.isArray(rowObj.columnWrappers)) {
+          // Remove any default column-wrappers
+          row.querySelectorAll(".column-wrapper").forEach((cw) => cw.remove());
+          // Remove column selector if present
+          const colSel = row.querySelector(".column-selector");
+          if (colSel) colSel.remove();
+          // Restore row height multiplier
+          if (typeof rowObj.heightMultiplier !== "undefined") {
+            wrapper._heightMultiplier = rowObj.heightMultiplier;
+            wrapper.style.setProperty(
+              "--row-height-multiplier",
+              rowObj.heightMultiplier
+            );
+          }
+          // Use setColumns to ensure all classes/controls, then adjust wrappers
+          const totalCols = rowObj.columnWrappers.reduce(
+            (sum, cw) => sum + (cw.columns ? cw.columns.length : 0),
+            0
+          );
+          if (typeof row.setColumns === "function") {
+            row.setColumns(totalCols);
+          }
+          // Remove all column-wrappers created by setColumns
+          row.querySelectorAll(".column-wrapper").forEach((cw) => cw.remove());
+          // --- Recreate column-wrappers and columns ---
+          rowObj.columnWrappers.forEach((cwObj) => {
+            const colWrapper = document.createElement("div");
+            colWrapper.className = "column-wrapper";
+            // Add columns
+            (cwObj.columns || []).forEach(() => {
+              const col = document.createElement("div");
+              col.className = "column";
+              colWrapper.appendChild(col);
+              addColumnControls(col, colWrapper, wrapper);
+              const dragHandle = col.querySelector(".col-drag-handle");
+              if (dragHandle) {
+                attachColDragEvents(dragHandle, col, row, wrapper);
+              }
+            });
+            // Remove any layout-col-X class, then add correct one from layoutCol or fallback
+            colWrapper.className = colWrapper.className
+              .split(" ")
+              .filter((c) => !/^layout-col-\d+$/.test(c))
+              .join(" ");
+            if (cwObj.layoutCol) {
+              colWrapper.classList.add(`layout-col-${cwObj.layoutCol}`);
+            } else {
+              colWrapper.classList.add(
+                `layout-col-${colWrapper.children.length}`
+              );
+            }
+            row.appendChild(colWrapper);
+            updateColDeleteBtns(colWrapper);
+            updateAllAddColButtons(colWrapper, wrapper);
+          });
+          // --- Ensure row-top-btn-bar is present ---
+          if (!row.querySelector(".row-top-btn-bar")) {
+            // Recreate row-top-btn-bar (same as in setColumns)
+            const topBtnBar = document.createElement("div");
+            topBtnBar.className = "row-top-btn-bar";
+            // Change layout button
+            const changeBtnSC = document.createElement("button");
+            changeBtnSC.className = "change-layout-btn";
+            const changeIconSC = document.createElement("i");
+            changeIconSC.className = "fa fa-random";
+            changeIconSC.setAttribute("aria-hidden", "true");
+            changeBtnSC.appendChild(changeIconSC);
+            const changeTextSC = document.createElement("span");
+            changeTextSC.textContent = "Change layout";
+            changeBtnSC.appendChild(changeTextSC);
+            changeBtnSC.addEventListener("mouseenter", () => {
+              changeBtnSC.classList.add("change-layout-btn-hover");
+            });
+            changeBtnSC.addEventListener("mouseleave", () => {
+              changeBtnSC.classList.remove("change-layout-btn-hover");
+            });
+            changeBtnSC.addEventListener("click", (e) => {
+              e.stopPropagation();
+              if (typeof wrapper.showColumnSelector === "function") {
+                wrapper.showColumnSelector();
+              }
+            });
+            topBtnBar.appendChild(changeBtnSC);
+            // Always create new row height controls and assign to wrapper._heightControls
+            if (typeof createHeightControls === "function") {
+              console.log("adding height controls");
+              const heightControls = createHeightControls(wrapper);
+              heightControls.classList.add("row-border-btn");
+              wrapper._heightControls = heightControls;
+              topBtnBar.appendChild(heightControls);
+            }
+            row.insertBefore(topBtnBar, row.firstChild.nextSibling);
+          }
+        } else if (typeof rowObj.columns === "number") {
+          // Fallback for old format
           if (row && typeof row.setColumns === "function") {
             row.setColumns(rowObj.columns);
           } else if (typeof wrapper.setColumns === "function") {
@@ -720,7 +939,6 @@ function updateModeUI() {
         if (newRow.updateDeleteBtnVisibility)
           newRow.updateDeleteBtnVisibility();
       }, 100);
-      wrapper.appendChild(inner);
       state.currentLayoutName = null;
       state.hasSavedOnce = false;
       updateLayoutNameLabel();
@@ -841,117 +1059,6 @@ function updateModeUI() {
 
     const row = document.createElement("div");
     row.classList.add("layout-row");
-    // --- Row Height Controls ---
-    function updateRowHeightLabel() {
-      const label = wrapper.querySelector(".row-height-label");
-      if (label) {
-        let value = wrapper._heightMultiplier;
-        // Show as decimal if ROW_HEIGHT_STEPPER is decimal
-        if (ROW_HEIGHT_STEPPER % 1 !== 0) {
-          value = value.toFixed(1);
-        }
-        label.textContent = `Height : ${value}`;
-      }
-    }
-
-    function updateRowHeight() {
-      wrapper.style.setProperty(
-        "--row-height-multiplier",
-        wrapper._heightMultiplier
-      );
-      updateRowHeightLabel();
-    }
-    function createHeightControls() {
-      const heightControls = document.createElement("div");
-      heightControls.className = "row-height-controls";
-      const decBtn = document.createElement("button");
-      decBtn.className = "row-height-dec btn btn-xs btn-default";
-      decBtn.innerHTML = "<i class='fa fa-minus'></i>";
-      const incBtn = document.createElement("button");
-      incBtn.className = "row-height-inc btn btn-xs btn-default";
-      incBtn.innerHTML = "<i class='fa fa-plus'></i>";
-
-      function updateBtnDisabled() {
-        // Find the max column count among all column-wrappers in this row
-        let wrappers = wrapper.querySelectorAll(".column-wrapper");
-        let maxColCount = 0;
-        wrappers.forEach((cw) => {
-          const count = cw.querySelectorAll(".column").length;
-          if (count > maxColCount) maxColCount = count;
-        });
-        // Disable if at min, or if decreasing would make height less than maxColCount
-        decBtn.disabled =
-          wrapper._heightMultiplier <= ROW_HEIGHT_MIN_MULTIPLIER ||
-          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER < maxColCount;
-        incBtn.disabled =
-          wrapper._heightMultiplier >= ROW_HEIGHT_MAX_MULTIPLIER;
-      }
-
-      decBtn.onclick = function (e) {
-        e.stopPropagation();
-        if (decBtn.disabled) return;
-        const row = wrapper.querySelector(".layout-row");
-        let atMaxCols = false;
-        if (row) {
-          const columnWrappers = row.querySelectorAll(".column-wrapper");
-          let maxColumns = 0;
-          columnWrappers.forEach((wrapper) => {
-            const colCount = wrapper.querySelectorAll(".column").length;
-            if (colCount > maxColumns) maxColumns = colCount;
-          });
-          atMaxCols = maxColumns >= wrapper._heightMultiplier;
-        }
-        if (
-          wrapper._heightMultiplier - ROW_HEIGHT_STEPPER >=
-            ROW_HEIGHT_MIN_MULTIPLIER &&
-          !atMaxCols
-        ) {
-          wrapper._heightMultiplier -= ROW_HEIGHT_STEPPER;
-          updateRowHeight();
-          // Visually update the button state immediately
-          if (typeof updateBtnDisabled === "function") updateBtnDisabled();
-          if (row) {
-            row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
-              updateAllAddColButtons(colWrapper, wrapper);
-            });
-          }
-        }
-      };
-      incBtn.onclick = function (e) {
-        e.stopPropagation();
-        if (
-          wrapper._heightMultiplier + ROW_HEIGHT_STEPPER <=
-          ROW_HEIGHT_MAX_MULTIPLIER
-        ) {
-          wrapper._heightMultiplier += ROW_HEIGHT_STEPPER;
-          updateRowHeight();
-          // Visually update the button state immediately
-          if (typeof updateBtnDisabled === "function") updateBtnDisabled();
-        }
-
-        const row = wrapper.querySelector(".layout-row");
-        if (row) {
-          row.querySelectorAll(".column-wrapper").forEach((colWrapper) => {
-            updateAllAddColButtons(colWrapper, wrapper);
-          });
-        }
-      };
-
-      // Initial state
-      setTimeout(updateBtnDisabled, 0);
-
-      heightControls.appendChild(decBtn);
-      // Add a text label between the buttons
-      const heightLabel = document.createElement("span");
-      heightLabel.className = "row-height-label";
-      heightControls.appendChild(heightLabel);
-      // Ensure the label is updated after it is in the DOM
-      setTimeout(updateRowHeightLabel, 0);
-      heightControls.appendChild(incBtn);
-      // Expose updateBtnDisabled for external use (after column deletion)
-      heightControls._updateBtnDisabled = updateBtnDisabled;
-      return heightControls;
-    }
     // --- Row Creation Logic ---
     function showColumnSelector() {
       row.innerHTML = "";
@@ -1038,7 +1145,7 @@ function updateModeUI() {
       });
       topBtnBar.appendChild(changeBtnSC);
       // Row height controls
-      const heightControls = createHeightControls();
+      const heightControls = createHeightControls(wrapper);
       heightControls.classList.add("row-border-btn");
       wrapper._heightControls = heightControls;
       topBtnBar.appendChild(heightControls);
