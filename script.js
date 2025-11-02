@@ -814,22 +814,33 @@ function updateModeUI() {
       updateDeleteBtnVisibility();
       const columns = [];
       for (let i = 0; i < count; i++) {
+        // Create the column
         const col = document.createElement("div");
-        col.classList.add("column", `layout-col-${count}`);
+        col.classList.add("column");
+
+        // Create the wrapper
+        const colWrapper = document.createElement("div");
+        colWrapper.classList.add("column-wrapper", `layout-col-${count}`);
+
+        // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
         plusBtn.innerHTML = "<span>+</span>";
         plusBtn.type = "button";
         plusBtn.tabIndex = -1;
         plusBtn.style.pointerEvents = "none";
         col.appendChild(plusBtn);
+
         if (count > 1) {
           const colDragHandle = DomHelpers.createDragHandle("col");
           attachColDragEvents(colDragHandle, col, row, wrapper);
           col.appendChild(colDragHandle);
         }
-        columns.push(col);
+
+        // Append the column to its wrapper
+        colWrapper.appendChild(col);
+        columns.push(colWrapper);
       }
-      columns.forEach((col) => row.appendChild(col));
+      columns.forEach((colWrapper) => row.appendChild(colWrapper));
       // Do NOT add another .change-layout-btn here (already in .row-top-btn-bar)
       updateRowControls();
     }
