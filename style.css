@@ -154,6 +154,11 @@
   border: none;
 }
 
+.view-mode .column-wrapper {
+  border: none;
+  padding: 0;
+}
+
 /* Drag handle SVG styles */
 .drag-handle-svg {
   display: block;
@@ -393,6 +398,8 @@
   flex-direction: column;
   height: 100%;
   gap: 20px 0;
+  padding: 20px;
+  border: 1px dotted #ccc;
 }
 
 .column {

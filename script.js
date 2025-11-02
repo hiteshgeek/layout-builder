@@ -204,9 +204,19 @@ function updateModeUI() {
   function updateAllAddColButtons(colWrapper, wrapper) {
     const maxCols = wrapper._heightMultiplier || 3;
     const show = colWrapper.children.length < maxCols;
-    colWrapper.querySelectorAll(".column").forEach((col) => {
+    const columns = colWrapper.querySelectorAll(".column");
+    columns.forEach((col) => {
       // Remove all existing add controls
       col.querySelectorAll(".col-control").forEach((ctrl) => ctrl.remove());
+      // Hide col-drag-handle if only one column
+      const colDragHandle = col.querySelector(".col-drag-handle");
+      if (colDragHandle) {
+        if (columns.length <= 1) {
+          colDragHandle.classList.add("col-drag-handle-hidden");
+        } else {
+          colDragHandle.classList.remove("col-drag-handle-hidden");
+        }
+      }
       if (show) {
         // Add Above
         const addAboveBtn = DomHelpers.createButton(
@@ -352,6 +362,18 @@ function updateModeUI() {
           fn(true);
         });
       }
+      // Hide col-drag-handle if only one column
+      const columns = colWrapper.querySelectorAll(".column");
+      columns.forEach((col) => {
+        const colDragHandle = col.querySelector(".col-drag-handle");
+        if (colDragHandle) {
+          if (columns.length <= 1) {
+            colDragHandle.classList.add("col-drag-handle-hidden");
+          } else {
+            colDragHandle.classList.remove("col-drag-handle-hidden");
+          }
+        }
+      });
     };
   }
 
@@ -513,17 +535,25 @@ function updateModeUI() {
       e.dataTransfer.effectAllowed = "move";
       e.dataTransfer.setData("text/plain", "col");
       row._draggedCol = col;
-      document.querySelectorAll(".row-wrapper").forEach((rw) => {
-        if (rw !== wrapper) {
-          rw.querySelectorAll(".col-drag-handle").forEach((h) =>
+      // Only allow drag within the same column-wrapper
+      // Mark all columns in other wrappers as not allowed
+      const thisWrapper = col.closest(".column-wrapper");
+      document.querySelectorAll(".column-wrapper").forEach((cw) => {
+        if (cw !== thisWrapper) {
+          cw.querySelectorAll(".col-drag-handle").forEach((h) =>
             h.classList.add("drag-not-allowed")
           );
-          rw.querySelectorAll(".column").forEach((c) =>
+          cw.querySelectorAll(".column").forEach((c) =>
             c.classList.add("col-not-allowed")
           );
         }
       });
     });
+
+    // Helper to get the column-wrapper for a column
+    function colWrapperOf(column) {
+      return column.closest(".column-wrapper");
+    }
     colDragHandle.addEventListener("dragend", () => {
       col.classList.remove("dragging-col");
       row._draggedCol = null;
@@ -540,15 +570,30 @@ function updateModeUI() {
     col.addEventListener("dragover", (e) => {
       e.preventDefault();
       if (row._draggedCol && row._draggedCol !== col) {
+        // Only allow drop if in the same column-wrapper
+        const fromWrapper = row._draggedCol.closest(".column-wrapper");
+        const toWrapper = col.closest(".column-wrapper");
+        if (fromWrapper !== toWrapper) return;
         col.classList.add("col-drop-target");
         const rect = col.getBoundingClientRect();
         const mouseX = e.clientX;
-        const colCenter = rect.left + rect.width / 2;
-        if (mouseX > colCenter) {
-          row.insertBefore(row._draggedCol, col.nextSibling);
+        const mouseY = e.clientY;
+        const colCenterX = rect.left + rect.width / 2;
+        const colCenterY = rect.top + rect.height / 2;
+        // Support both horizontal and vertical drag directions
+        if (Math.abs(mouseX - colCenterX) > Math.abs(mouseY - colCenterY)) {
+          // Horizontal drag
+          if (mouseX > colCenterX) {
+            toWrapper.insertBefore(row._draggedCol, col.nextSibling);
+          } else {
+            toWrapper.insertBefore(row._draggedCol, col);
+          }
         } else {
-          if (row._draggedCol !== col) {
-            row.insertBefore(row._draggedCol, col);
+          // Vertical drag
+          if (mouseY > colCenterY) {
+            toWrapper.insertBefore(row._draggedCol, col.nextSibling);
+          } else {
+            toWrapper.insertBefore(row._draggedCol, col);
           }
         }
       }
@@ -1172,7 +1217,10 @@ function updateModeUI() {
 
         // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
-        plusBtn.innerHTML = "<span>+</span>";
+        // plusBtn.innerHTML = "<span>+</span>";
+
+        //print count
+        plusBtn.innerHTML = i;
         plusBtn.type = "button";
         plusBtn.tabIndex = -1;
         plusBtn.style.pointerEvents = "none";
