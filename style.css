@@ -1,3 +1,58 @@
+@keyframes colFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.col-animate-out {
+  animation: colFadeOut 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.delete-col-control {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  transform: translateY(-50%);
+
+  z-index: 10;
+  opacity: 0;
+  background: white;
+  padding: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0 6px;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.column:hover .delete-col-control {
+  opacity: var(--semi_opacity);
+  pointer-events: auto;
+  display: flex;
+}
+
+.delete-col-control .col-delete-btn {
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  line-height: 1;
+  background: white;
+  border-radius: 14px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0 6px;
+  padding: 0 8px;
+  transition: background 0.5s, color 0.5s;
+}
+.delete-col-control .col-delete-btn:hover {
+  background: #d32f2f;
+  color: #fff;
+}
 .column-wrapper {
   display: flex;
   flex-direction: column;
@@ -20,6 +75,7 @@
   --delete-btn-bg: #fff;
   --delete-btn-color: var(--danger-color);
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --semi_opacity: 1;
 }
 
 .col-control {
@@ -43,6 +99,34 @@
 
 .col-delete-btn {
   display: none;
+  z-index: 10;
+  background: white;
+  padding: 0 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  align-items: center;
+  gap: 0 6px;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.col-delete-btn.btn {
+  display: flex;
+}
+
+.col-delete-btn:hover {
+  background: #d32f2f;
+  color: #fff;
+}
+
+.column:hover .col-delete-btn {
+  display: flex;
+  opacity: var(--semi_opacity);
+  pointer-events: auto;
 }
 
 .studio-mode .row-wrapper {
@@ -565,7 +649,7 @@ body {
 }
 
 .column:hover .col-control {
-  opacity: 0.4;
+  opacity: var(--semi_opacity);
 }
 
 .column:hover .col-drag-handle {
@@ -659,7 +743,7 @@ body {
 .row-wrapper:hover .row-control.bottom,
 .row-wrapper:hover .delete-row-control,
 .row-wrapper:hover .row-top-btn-bar {
-  opacity: 0.4;
+  opacity: var(--semi_opacity);
   pointer-events: auto;
 }
 
