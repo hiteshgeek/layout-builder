@@ -689,16 +689,25 @@ body {
   border-radius: 0 14px 14px 0;
 } */
 
-.row-control .btn,
-.col-control .btn {
+.row-control .btn {
   color: #007bff;
   border-color: #007bff;
   outline: none !important;
   outline-offset: unset !important;
 }
-.row-control .btn:hover,
-.col-control .btn:hover {
+.row-control .btn:hover {
   background: #007bff;
+  color: #fff;
+}
+
+.col-control .btn {
+  color: #e3a216;
+  border-color: #e3a216;
+  outline: none !important;
+  outline-offset: unset !important;
+}
+.col-control .btn:hover {
+  background: #e3a216;
   color: #fff;
 }
 
