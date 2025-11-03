@@ -230,7 +230,7 @@ function updateModeUI() {
         };
         // Add Below
         const addBelowBtn = DomHelpers.createButton(
-          "Add Column Below",
+          "Column Below",
           "col-add-below-btn btn",
           "fa fa-plus"
         );
@@ -272,11 +272,11 @@ function updateModeUI() {
     let delCtrl = document.createElement("div");
     delCtrl.className = "delete-col-control";
     const delBtn = DomHelpers.createButton(
-      "Delete Column",
+      "Column",
       "col-delete-btn delete-btn btn",
       "fa fa-trash"
     );
-    delBtn.title = "Delete Column";
+    delBtn.title = "Column";
     delBtn.onclick = function (e) {
       e.stopPropagation();
       if (colWrapper.querySelectorAll(":scope > .column").length > 1) {
@@ -321,7 +321,7 @@ function updateModeUI() {
       if (!visible) return;
       // Add Above
       const addAboveBtn = DomHelpers.createButton(
-        "Add Column Above",
+        "Column Above",
         "col-add-above-btn btn",
         "fa fa-plus"
       );
@@ -784,7 +784,7 @@ function updateModeUI() {
     rowWrapper.querySelectorAll(".row-control").forEach((el) => el.remove());
     if (mode === "studio") {
       const addAbove = DomHelpers.createButton(
-        "Add Row Above",
+        "Row Above",
         "btn",
         "fa fa-plus"
       );
@@ -803,7 +803,7 @@ function updateModeUI() {
       controlAbove.appendChild(addAbove);
       rowWrapper.appendChild(controlAbove);
       const addBelow = DomHelpers.createButton(
-        "Add Row Below",
+        "Row Below",
         "btn",
         "fa fa-plus"
       );
@@ -1124,7 +1124,7 @@ function updateModeUI() {
 
       // Create the delete button and handler only once per row
       const deleteBtn = DomHelpers.createButton(
-        "Delete Row",
+        "Row",
         "delete-btn",
         "fa fa-trash"
       );
@@ -1217,10 +1217,10 @@ function updateModeUI() {
 
         // Add plus button and drag handle as before
         const plusBtn = DomHelpers.createButton("", "col-plus-btn");
-        // plusBtn.innerHTML = "<span>+</span>";
+        plusBtn.innerHTML = "<span>+</span>";
 
         //print count
-        plusBtn.innerHTML = i;
+        // plusBtn.innerHTML = i;
         plusBtn.type = "button";
         plusBtn.tabIndex = -1;
         plusBtn.style.pointerEvents = "none";

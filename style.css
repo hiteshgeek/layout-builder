@@ -1,3 +1,27 @@
+:root {
+  --primary-color: #2196f3;
+  --primary-color-light: #e3f2fd;
+  --danger-color: #e53935;
+  --background: #fff;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --spacing: 10px;
+  --column-gap: 20px;
+  --plus-btn-size: 32px;
+  --plus-btn-font-size: 1.6em;
+  --handle-size: 28px;
+  --handle-color: #888;
+  --delete-btn-bg: #fff;
+  --delete-btn-color: var(--danger-color);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --semi_opacity: 1;
+
+  --row-height-base: 100px;
+  --row-height-multiplier: 3;
+  /* --row-height-min: 1;
+  --row-height-max: 6; */
+}
+
 /* Moved from script.js */
 .mode-toggle-btn-margin {
   margin: 8px;
@@ -76,25 +100,6 @@
   height: 100%;
   /* gap: 20px 0; */
 }
-:root {
-  --primary-color: #2196f3;
-  --primary-color-light: #e3f2fd;
-  --danger-color: #e53935;
-  --background: #fff;
-  --border-radius: 8px;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --spacing: 10px;
-  --column-gap: 20px;
-  --plus-btn-size: 32px;
-  --plus-btn-font-size: 1.6em;
-  --handle-size: 28px;
-  --handle-color: #888;
-  --delete-btn-bg: #fff;
-  --delete-btn-color: var(--danger-color);
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --semi_opacity: 1;
-}
-
 .col-control {
   position: absolute;
   left: 50%;
@@ -144,6 +149,7 @@
   display: flex;
   opacity: var(--semi_opacity);
   pointer-events: auto;
+  font-weight: bold;
 }
 
 .studio-mode .row-wrapper {
@@ -283,12 +289,6 @@
   cursor: not-allowed;
   border-color: #ccc !important;
 }
-:root {
-  --row-height-base: 100px;
-  --row-height-multiplier: 3;
-  /* --row-height-min: 1;
-  --row-height-max: 6; */
-}
 
 .rows-wrapper {
   max-height: calc(100vh - 150px);
@@ -308,6 +308,12 @@
   height: calc(var(--row-height-base) * var(--row-height-multiplier));
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s,
     border-color 0.2s;
+}
+
+.studio-mode .row-wrapper {
+  min-height: calc(var(--row-height-base) * var(--row-height-min) + 80px);
+  max-height: calc(var(--row-height-base) * var(--row-height-max) + 80px);
+  height: calc(var(--row-height-base) * var(--row-height-multiplier) + 80px);
 }
 
 .row-wrapper .column {
