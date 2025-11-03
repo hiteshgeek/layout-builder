@@ -331,7 +331,7 @@ function updateModeUI() {
       };
       // Add Below
       const addBelowBtn = DomHelpers.createButton(
-        "Add Column Below",
+        "Column Below",
         "col-add-below-btn btn",
         "fa fa-plus"
       );
